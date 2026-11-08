@@ -1,6 +1,29 @@
 # RemindMe Companion
 
-An Android to-do app with **Mochi**, a pixel cat that walks over other apps, offers task reminders, and gently checks in during long sessions in selected apps. Android 8.0 or newer. All data stays on the device; no accounts, server, analytics, or internet permission.
+A Flutter task app with **Mochi**, a pixel cat that offers gentle reminders and phone-use nudges. The Flutter project is in `companion_flutter/`. Android-specific functionality uses a method channel and the shared Java code in `native-core/`.
+
+## Develop with a live preview
+
+```sh
+# Run from the repository root, with Flutter stable installed:
+./scripts/flutterw pub get
+./scripts/preview_flutter.sh
+```
+
+Open **http://127.0.0.1:8942** in the Codex in-app browser or a regular browser. Flutter renders the actual Dart interface. Edit `companion_flutter/lib/`, then use the running Flutter terminal’s hot reload/restart commands. The wide browser layout includes a preview introduction alongside the phone layout; narrow windows show the app alone. Stop the server with Ctrl-C.
+
+The browser version has labeled example tasks, local persistence, task editing/completion, reminder-date selection, configurable nudge settings, and interactive pet bubbles. Use **Clear** beneath the example tasks to start empty. Browser reminders only run while the page is open. **Wake Mochi** simulates the floating pet inside the app; it cannot float over other browser tabs or desktop apps. Usage tracking and speech are Android features. No usage data is collected by the web preview.
+
+For Android, open `companion_flutter/` in Android Studio or VS Code with the Flutter extension, connect a phone/emulator, then run `./scripts/flutterw run` from the repository root. Use `./scripts/flutterw build apk --debug` for a Flutter APK. Android needs the SDK versions specified by the generated Flutter Gradle project. The Android application ID remains `com.remindme.companion`, and the bridge reuses the original private task store.
+
+```sh
+./scripts/flutterw analyze
+./scripts/flutterw test
+```
+
+The old `dist/RemindMe-Companion.apk` is the initial **Java** version, not the Flutter build. The original Java interface remains in `app/` for reference and can still be built with `python3 scripts/build_apk.py`. Both Android interfaces use `native-core/` for reminder scheduling, overlay behavior, task storage, and usage timing. The Flutter browser build does not execute that Android code.
+
+## Original Android APK
 
 ## Install and use
 
@@ -34,7 +57,7 @@ Run the phone-use session tests:
 
 ```sh
 mkdir -p build/tests
-javac -d build/tests app/src/main/java/com/remindme/companion/UsageSession.java tests/UsageSessionTest.java
+javac -d build/tests native-core/src/main/java/com/remindme/companion/UsageSession.java tests/UsageSessionTest.java
 java -cp build/tests UsageSessionTest
 ```
 

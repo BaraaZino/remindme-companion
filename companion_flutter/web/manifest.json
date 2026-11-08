@@ -1,0 +1,1 @@
+{"name":"RemindMe Companion","short_name":"RemindMe","start_url":".","display":"standalone","background_color":"#F8F7F2","theme_color":"#42634D","description":"A gentle task companion with Mochi the pixel cat.","orientation":"portrait-primary","prefer_related_applications":false,"icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+if command -v flutter >/dev/null 2>&1; then
+  FLUTTER_CMD="$(command -v flutter)"
+elif [[ -x "$PROJECT_ROOT/.tools/flutter/bin/flutter" ]]; then
+  FLUTTER_CMD="$PROJECT_ROOT/.tools/flutter/bin/flutter"
+else
+  echo 'Install Flutter stable and add it to PATH: https://docs.flutter.dev/install' >&2
+  exit 1
+fi
+cd "$PROJECT_ROOT/companion_flutter"
+exec "$FLUTTER_CMD" --no-version-check "$@"

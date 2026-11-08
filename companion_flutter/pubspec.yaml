@@ -1,0 +1,16 @@
+name: remindme_companion
+description: A gentle task companion with Mochi the pixel cat.
+publish_to: none
+version: 0.2.0+2
+environment:
+  sdk: '>=3.6.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.5.3
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+flutter:
+  uses-material-design: true

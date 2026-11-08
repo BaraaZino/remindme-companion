@@ -26,7 +26,7 @@ run(tools/'aapt2','compile','--dir',ROOT/'app/src/main/res','-o',BUILD/'resource
 manifest=BUILD/'AndroidManifest.xml'
 manifest.write_text((ROOT/'app/src/main/AndroidManifest.xml').read_text().replace('<manifest ', '<manifest package="com.remindme.companion" ', 1))
 run(tools/'aapt2','link','-o',BUILD/'base.apk','-I',android,'--manifest',manifest,'--java',generated,'--min-sdk-version','26','--target-sdk-version','35','--version-code','1','--version-name','0.1.0','--auto-add-overlay',BUILD/'resources.zip')
-sources=list((ROOT/'app/src/main/java').rglob('*.java'))+list(generated.rglob('*.java'))
+sources=list((ROOT/'native-core/src/main/java').rglob('*.java'))+list((ROOT/'app/src/main/java').rglob('*.java'))+list(generated.rglob('*.java'))
 run('javac','--release','17','-classpath',android,'-d',classes,*sources)
 run(tools/'d8','--lib',android,'--min-api','26','--output',dex,*classes.rglob('*.class'))
 with zipfile.ZipFile(BUILD/'base.apk','a',compression=zipfile.ZIP_DEFLATED) as apk:
