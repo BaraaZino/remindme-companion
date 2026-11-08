@@ -1,99 +1,126 @@
 # RemindMe Companion
 
-A Flutter task app with **Mochi**, a pixel cat that offers gentle reminders and phone-use nudges. The Flutter project is in `companion_flutter/`. Android-specific functionality uses a method channel and the shared Java code in `native-core/`.
+A Flutter Android task app with companions that walk in, stop to deliver a reminder, and then walk off-screen. Each task and app timer can use a different named companion. A resizable Android home-screen widget can add, complete, and remove tasks.
 
-## Develop with a live preview
+## What you can configure
+
+The bottom navigation has **Tasks**, **Companions**, and **App timers**. There are no page-switching buttons in the header. Individual companion settings open from that companion’s card.
+
+- Create and name multiple companions. Choose cat, dog, bunny, or fox, with independent body and accent colors.
+- Customize size, opacity, bubble colors, font family/size, rounded corners, walking speed, entrance side, stopping position, vertical position, and reading time.
+- Record or import separate audio clips for task reminders and app-timer nudges. Clips are limited to 60 seconds and 5 MB. Recording asks for microphone permission only when you press Record. Imported originals are kept; Android copies selected audio into the app’s private files.
+- Enable or disable each companion’s voice, set volume, and optionally read the reminder text after a custom clip using the system voice. Without a clip, an enabled voice reads the reminder through system text-to-speech. Clips play as recorded; this is not voice cloning.
+- Select a companion on each task and each app-timer rule. Each rule has its own watched apps, time limit, and enable switch.
+- The pet enters from an edge, pauses with its bubble and optional audio, waits for both reading time and audio completion, then continues off the opposite edge. Multiple reminders queue instead of overlapping.
+- Removing a companion reassigns its tasks and timers; it does not delete those tasks. At least one companion is kept.
+
+The app has no account, backend, analytics, or internet permission in the Android release. Tasks and companion settings are stored locally. Android speech follows the phone’s installed text-to-speech engine and its settings.
+
+## Develop and preview
+
+Install Flutter stable, then run these commands from the repository root:
 
 ```sh
-# Run from the repository root, with Flutter stable installed:
 ./scripts/flutterw pub get
 ./scripts/preview_flutter.sh
 ```
 
-Open **http://127.0.0.1:8942** in the Codex in-app browser or a regular browser. Flutter renders the actual Dart interface. Edit `companion_flutter/lib/`, then use the running Flutter terminal’s hot reload/restart commands. The wide browser layout includes a preview introduction alongside the phone layout; narrow windows show the app alone. Stop the server with Ctrl-C.
+Open **http://127.0.0.1:8942**. This runs the actual Dart interface in a browser. Use `r` in the running Flutter terminal to hot reload and `R` to hot restart. Browser tasks and companion settings persist in this browser. Existing example tasks can be cleared from Tasks.
 
-The browser version has labeled example tasks, local persistence, task editing/completion, reminder-date selection, configurable nudge settings, and interactive pet bubbles. Use **Clear** beneath the example tasks to start empty. Browser reminders only run while the page is open. **Wake Mochi** simulates the floating pet inside the app; it cannot float over other browser tabs or desktop apps. Usage tracking and speech are Android features. No usage data is collected by the web preview.
+Browser visits are simulated inside the browser window. Android handles floating over other apps and real phone-usage monitoring. Browser audio import and recording depend on the browser’s supported formats and microphone permissions. Large clips may exceed browser local-storage limits; Android stores clips as files instead.
 
-For Android, open `companion_flutter/` in Android Studio or VS Code with the Flutter extension, connect a phone/emulator, then run `./scripts/flutterw run` from the repository root. Use `./scripts/flutterw build apk --debug` for a Flutter APK. Android needs the SDK versions specified by the generated Flutter Gradle project. The Android application ID remains `com.remindme.companion`, and the bridge reuses the original private task store.
-
-```sh
-./scripts/flutterw analyze
-./scripts/flutterw test
-```
-
-The `dist/RemindMe-Companion.apk` uses the **Java interface**, not the Flutter interface. It includes the shared native home-screen widget. The original Java interface remains in `app/` for reference and can still be built with `python3 scripts/build_apk.py`. Both Android interfaces use `native-core/` for reminder scheduling, overlay behavior, task storage, and usage timing. The Flutter browser build does not execute that Android code.
-
-## Original Android APK
-
-## Install and use
-
-1. Transfer `dist/RemindMe-Companion.apk` to your Android phone and open it. Allow installation from that source if Android asks. This is a locally signed development build.
-2. Open RemindMe Companion and allow notifications for task reminders.
-3. Add a task and optionally select a future reminder date and time. Use a list name such as Personal or Work. Tap a task to edit or delete it; tick its checkbox to complete it.
-4. Tap **Let Mochi walk with me**, allow display over other apps, return to the app, and tap the start button again.
-5. Under **Companion**, optionally enable phone-use nudges, grant usage access, select apps, and set your interval from 5 to 120 minutes. Nudges count consecutive time across selected apps, excluding short activity transitions. Leaving those apps or locking the screen resets the session. Tracking runs only while Mochi is active.
-6. Tap Mochi for your next task, drag to reposition, or hold and release to pause. The ongoing notification also has a Pause action. Reminder bubbles offer Done, Snooze for 10 minutes, and Dismiss. Optional speech uses Android text-to-speech.
-
-**Today** includes unfinished undated tasks, overdue tasks, and tasks due today. **All tasks** also includes future and completed tasks. No sample tasks are inserted.
-
-## Reminder behavior and limitations
-
-Dated tasks generate notifications even when the companion is paused. An active companion also shows a bubble. Android's battery-saving and alarm scheduling may delay reminders: this is not an exact-alarm app. Due tasks that were missed are delivered after the device restarts; the visible companion must be started manually again. Force-stopping the app prevents reminders until it is opened again. Some manufacturers require additional battery settings for persistent overlays. Secure screens and apps may hide overlays.
-
-This initial version has named task lists, one-time reminders, and task completion. Recurring tasks, subtasks, cloud sync, and Microsoft To Do integration are not included.
-
-## Build
-
-Requires Python 3 and JDK 17 or newer. Either install Android SDK platform 35 and build-tools 35.0.0 and set `ANDROID_HOME`, or fetch the official SDK packages with:
-
-```sh
-python3 scripts/bootstrap_android.py
-python3 scripts/build_apk.py
-```
-
-The build script compiles resources, compiles Java, produces DEX, aligns the APK, signs it with a local development key stored in `.tools/debug.keystore`, and verifies the signature. Keep that key to install future builds over this one. The SDK packages and keys are ignored by git. A Gradle project is also included for Android Studio.
-
-Run the phone-use session tests:
-
-```sh
-mkdir -p build/tests
-javac -d build/tests native-core/src/main/java/com/remindme/companion/UsageSession.java tests/UsageSessionTest.java
-java -cp build/tests UsageSessionTest
-```
-
-## Device checks before relying on reminders
-
-- Start the companion; switch to another app; check that the cat walks and can be dragged, tapped, and paused.
-- Add a task due in a few minutes. Check the notification and pet bubble, completion, and snoozing. Repeat with the pet paused.
-- Grant usage access, select an app, set five minutes, and keep using it. Check the nudge; repeat with a screen lock and an unselected app to check reset behavior.
-- Deny overlay or usage access and check the corresponding setup guidance. Check notification-denied behavior and restart the phone.
-
-The Java timer tests and APK compilation/signature checks do not replace these device tests.
-
-## Home-screen task widget
-
-Use the widget icon in the Flutter app header for an interactive preview. It uses your current tasks: **Add a task** opens a quick-add dialog, the circle completes a task, and **×** removes it. Completed tasks remain under **Done** in the app; removed tasks are deleted.
-
-On Android, tap **Add to home screen** on that preview to ask your launcher to pin the real widget, or long-press an empty home-screen area, choose **Widgets**, and select **RemindMe tasks**. The widget resizes and scrolls through unfinished tasks, including undated and future tasks. Its title opens the app. It works while the pet is paused and needs no overlay or usage-access permission. A launcher must support widgets; some launchers require the manual placement route.
-
-Both Android interfaces share the widget implementation and task store. Each task write refreshes placed widgets. The Flutter app listens for native task changes, and task mutations update individual records so settings changes cannot overwrite widget-created tasks. New tasks made in the quick-add dialog have no reminder until one is added in the app.
-
-The browser widget is a simulation inside the Flutter preview, not a desktop OS widget. Native widget code is compiled with the Android build, but launcher placement, quick-add, and button behavior still require device/emulator testing. To check them: add two tasks from the widget, complete one, delete the other, then open the app and verify **Done** and the pending list. Also test an empty list, more than one screen of tasks, resizing, and changes made from the app.
-
-## Test the Flutter app on an Android phone
-
-For a modern ARM64 Android phone such as the POCO X7 Pro, build the Flutter APK with:
+## Build the Flutter Android APK
 
 ```sh
 ./scripts/build_flutter_apk.sh
 ```
 
-The first build needs Android SDK platforms 35 and 36, Build Tools 36.0.0, NDK 28.2.13676358, and CMake 3.22.1; Android Studio’s SDK Manager can install them.
+The ARM64 result is `dist/RemindMe-Flutter-arm64.apk`, suitable for the POCO X7 Pro. The first build needs Android SDK platforms 35 and 36, Build Tools 36.0.0, NDK 28.2.13676358, and CMake 3.22.1. Android Studio’s SDK Manager can install them; follow [Flutter’s Android setup](https://docs.flutter.dev/platform-integration/android/setup) for SDK configuration and licenses.
 
-The result is `dist/RemindMe-Flutter-arm64.apk`. This uses the Flutter interface, shared native pet service, and native task widget. It is signed with the existing local development key when available; keep `.tools/debug.keystore` to install future test builds as updates. The large Flutter APK is distributed as a private GitHub release asset rather than committed to git.
+Test builds use the existing local development key when available. Keep `.tools/debug.keystore` to install future versions as updates. Keys, SDKs, caches, recordings, and large Flutter APKs are not committed. Test APKs are shared through private GitHub release assets.
 
-Transfer that APK to your phone and open it with the phone’s file manager. If prompted, allow that file manager to install this APK. Open **RemindMe Companion**, then use **Companion** to enable notifications, floating-pet permission, and optional usage access. Return to the app and tap **Wake Mochi** after granting overlay access. Use the widget icon to request home-screen placement or add **RemindMe tasks** from the launcher’s Widgets picker.
+After installation, open **Companions → Permissions** and grant floating-pet and notification access. Enable companion visits. Open an individual companion’s settings to customize it, record/import audio, and try a task or timer visit. For real app timers, also grant usage access under **App timers**. Use the **Home-screen widget** button on Tasks to request widget placement or add **RemindMe tasks** from the launcher’s Widgets picker.
 
-For HyperOS, if the pet is hidden or stopped after leaving the app, check RemindMe’s per-app permissions for pop-up/background-window access and its battery/background restrictions. Menu names vary by HyperOS version; these additional settings should only be changed for RemindMe. Xiaomi documents the separate pop-up controls in its [permission guide](https://www.mi.com/global/support/faq/details/KA-497759/).
+On HyperOS, a hidden/stopped overlay may require per-app pop-up/background-window or battery settings. Menu names vary; Xiaomi documents the extra controls in its [permission guide](https://www.mi.com/global/support/faq/details/KA-497759/).
 
-A useful first test: add a task due in a few minutes; start Mochi and switch apps; check the reminder bubble and snooze; add a widget and try adding/completing/removing tasks; then choose a watched app and set the scrolling nudge to five minutes.
+## Learn the code: languages and structure
+
+**Dart** is the language of the main app. **Flutter** is the framework that draws its screens and animations. **Java** connects the Flutter app to Android features such as overlays, usage events, widgets, recording, and audio. **XML** declares Android permissions, widget layouts, and themes. The `.gradle.kts` files use **Kotlin syntax to configure the build**; the native app logic is currently Java. **Bash/Python** scripts automate development and packaging. A small JavaScript file starts the Flutter browser preview; the app UI is not hand-written HTML/JavaScript.
+
+```text
+companion_flutter/
+  lib/
+    main.dart                  App entry point, bottom tabs, tasks and app timers
+    companion_model.dart       Pet, Task, TimerRule and VoiceClip data; persistence
+    companion_editor.dart      Individual companion settings and recording dialog
+    pixel_cat.dart             Four animated animal designs, drawn with a Canvas
+    app_style.dart             Shared colors and reusable visual components
+    visit_overlay.dart         Browser visit queue and entry/talk/exit animation
+    voice_backend.dart         Chooses the Android or browser audio implementation
+    voice_backend_native.dart  Dart calls into Android recording/import/playback
+    voice_backend_web.dart     Browser recorder, file picker, audio and speech
+    task_widget_preview.dart   Interactive preview of the home-screen widget
+  android/app/src/main/java/com/remindme/companion/
+    MainActivity.java          MethodChannel/EventChannel bridge between Dart and Java
+    VoiceCapture.java          Android microphone, file picker and audio audition
+  pubspec.yaml                 Dependencies, fonts, assets and app version
+  test/companion_test.dart     Behavior and UI tests
+  tool/render_preview_test.dart  Off-screen rendering for visual review
+native-core/src/main/java/com/remindme/companion/
+  Store.java                  Shared task persistence and mutations
+  PetProfile.java             Android companion settings and timer-rule decoding
+  CompanionService.java       Foreground scheduler, overlay window, voices and visits
+  VisitMotion.java            Pure enter → talk → exit state machine
+  CatView.java                Android Canvas animal renderer
+  UsageSession.java           Counts uninterrupted time in chosen apps
+  ReminderReceiver.java       Schedules/delivers task reminder notifications
+  TaskWidgetProvider.java     Home-screen widget layout, refresh and button actions
+  TaskWidgetService.java      Collection adapter for older Android/large task lists
+  WidgetAddActivity.java      Small native widget quick-add dialog
+  VoiceFiles.java             Private audio file validation and safe cleanup
+app/src/main/res/              Shared Android widget XML, icon and themes
+scripts/                      Preview/build command wrappers
+```
+
+The top-level `app/` also contains the **original Java interface**, kept for reference. It is not the active Flutter interface. `scripts/build_apk.py` builds that older interface; use `scripts/build_flutter_apk.sh` for the current app. Shared native code/resources serve both builds.
+
+### A reading order
+
+1. In `main.dart`, read `main()`, `RemindMeApp`, and the `NavigationBar`. Follow `tasksPage()`, `companionsPage()`, and `timersPage()` to see which widgets draw each page.
+2. Read `Task`, `Pet`, and `TimerRule` in `companion_model.dart`. Each object has fields and `toJson()`/`fromJson()` methods that convert between Dart objects and saved data. `companionId` is a reference to a pet’s stable ID; renaming the pet does not require rewriting every task.
+3. Follow `CompanionModel.upsert()` into `_persistTask()`. On Android it sends `upsertTask` through a `MethodChannel`. In the browser it saves locally.
+4. Find the `upsertTask` case in `MainActivity.java`, then `Store.upsert()` and `Store.save()`. Java changes one stored task and refreshes the widget. An `EventChannel` sends task changes back to Flutter, keeping the screens synchronized.
+5. Read `VisitMotion.java`: the enum names the phases and `tick()` advances between them. This small class has no Android dependency, making the behavior easy to test. Then see how `CompanionService` uses the result to position an Android overlay window.
+6. Read `companion_editor.dart` for customization. The editor uses a draft copy, so sliders change the preview before you save. `voice_backend.dart` uses a conditional export to select native or web audio code.
+
+```mermaid
+flowchart LR
+  UI["Flutter screens: Dart"] --> Model["CompanionModel"]
+  Model -->|MethodChannel| Bridge["MainActivity: Java"]
+  Bridge --> Store["Store: local saved tasks"]
+  Store --> Widget["Android home-screen widget"]
+  Store -->|EventChannel| Model
+  Bridge --> Service["CompanionService"]
+  Service --> Motion["VisitMotion: enter, talk, exit"]
+```
+
+A **widget** in Flutter is a building block such as a button, row, or screen. The **Android home-screen widget** is a different feature built with Android `RemoteViews`; `task_widget_preview.dart` is its interactive visual counterpart. A **model** is the app’s data and operations. A **service** is Android code that can continue working while the main screen is not open. A **platform channel** is a direct message bridge within the app, not a network request.
+
+For a small first exercise, change `green` in `app_style.dart`, hot reload, and inspect the app’s buttons. Then read `PixelCat` and `AnimalPainter` to see how rectangles become a pixel animal. Changing defaults in code does not overwrite a companion’s already-saved settings; use the companion editor to change existing companions.
+
+## Checks
+
+```sh
+./scripts/flutterw analyze
+./scripts/flutterw test
+mkdir -p build/tests
+javac -d build/tests native-core/src/main/java/com/remindme/companion/UsageSession.java tests/UsageSessionTest.java native-core/src/main/java/com/remindme/companion/VisitMotion.java tests/VisitMotionTest.java
+java -cp build/tests UsageSessionTest
+java -cp build/tests VisitMotionTest
+```
+
+The Flutter tests cover migration, persistence, task/timer assignments, companion deletion, native mutation messages, task/widget actions, recording-dialog wiring with a mocked recorder, bottom navigation, responsive layouts, and visit timing. They do not record a real microphone. The Java tests check usage timing and visit motion independently of Android.
+
+For rendered screen images in `.tools/`, run `./scripts/flutterw test tool/render_preview_test.dart`. They are off-screen Flutter renders, not phone screenshots.
+
+A real phone check is still required for microphone hardware, file-provider support, overlay behavior, notification timing, usage-access delivery, and launcher widgets. Test a short recording and an imported clip for both reminder roles, two pets assigned to different tasks/timers, both entrance directions, large text, queued reminders, completing/snoozing, and widget changes. Android battery saving can delay scheduled notifications; enabling visits does not provide exact-alarm guarantees. Start visits again after restarting the phone.

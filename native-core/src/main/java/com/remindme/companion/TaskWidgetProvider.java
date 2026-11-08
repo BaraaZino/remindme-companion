@@ -26,7 +26,7 @@ public class TaskWidgetProvider extends AppWidgetProvider {
   static RemoteViews row(Context context, Store.Task task) {
     RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.task_widget_row);
     row.setTextViewText(R.id.widget_title, task.title);
-    String detail = task.list;
+    String detail = task.list + " · " + PetProfile.resolve(context, task.companionId).name;
     if (task.due > 0)
       detail +=
           " · "

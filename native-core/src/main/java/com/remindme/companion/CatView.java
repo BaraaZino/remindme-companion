@@ -4,54 +4,78 @@ import android.content.Context;
 import android.graphics.*;
 import android.view.View;
 
+/** Code-drawn animal designs shared conceptually with the Flutter painter. */
 public class CatView extends View {
-  private final Paint p = new Paint();
-  public boolean walking = true, faceRight = true;
+  private final Paint paint = new Paint();
+  public boolean walking = true, faceRight = true, talking;
+  public PetProfile profile = new PetProfile();
 
   public CatView(Context c) {
     super(c);
-    setContentDescription(
-        "Mochi, your pixel cat companion. Tap for a task, drag to move, or hold to pause.");
+  }
+
+  public void setProfile(PetProfile p) {
+    profile = p;
+    setContentDescription(p.name + ", your " + p.animal + " companion");
+    invalidate();
   }
 
   void r(Canvas c, int color, float x, float y, float w, float h) {
-    p.setColor(color);
-    c.drawRect(x, y, x + w, y + h, p);
+    paint.setColor(color);
+    c.drawRect(x, y, x + w, y + h, paint);
   }
 
   @Override
-  protected void onDraw(Canvas canvas) {
-    super.onDraw(canvas);
-    Canvas c = canvas;
+  protected void onDraw(Canvas c) {
+    super.onDraw(c);
     c.save();
-    float s = Math.min(getWidth() / 32f, getHeight() / 30f);
-    c.translate((getWidth() - 32 * s) / 2, (getHeight() - 30 * s) / 2);
-    c.scale(s, s);
+    float scale = Math.min(getWidth() / 36f, getHeight() / 40f);
+    c.translate((getWidth() - 36 * scale) / 2, (getHeight() - 40 * scale) / 2);
+    c.scale(scale, scale);
     if (!faceRight) {
-      c.translate(32, 0);
+      c.translate(36, 0);
       c.scale(-1, 1);
     }
-    int fur = Color.rgb(216, 147, 84), dark = Color.rgb(156, 94, 51), ink = Color.rgb(57, 48, 42);
-    int step = walking ? (int) (System.currentTimeMillis() / 220 % 2) : 0;
-    r(c, 0x18315D50, 5, 28, 23, 1);
-    r(c, fur, 4, 17, 22, 9);
-    r(c, fur, 11, 8, 17, 13);
-    r(c, fur, 11, 3, 5, 7);
-    r(c, fur, 23, 3, 5, 7);
-    r(c, 0xFFE8B69A, 12, 5, 3, 4);
-    r(c, 0xFFE8B69A, 24, 5, 3, 4);
-    r(c, fur, 1, 13, 4, 10);
-    r(c, fur, 0, 10, 3, 5);
-    r(c, dark, 7, 18, 3, 4);
-    r(c, dark, 16, 9, 2, 4);
-    r(c, dark, 21, 9, 2, 3);
-    r(c, ink, 16, 14, 2, 3);
-    r(c, ink, 24, 14, 2, 3);
-    r(c, 0xFFF7D5B0, 18, 19, 7, 3);
-    r(c, ink, 21, 19, 2, 1);
-    r(c, fur, 7 + step, 25, 4, 3 - step);
-    r(c, fur, 21 - step, 25, 4, 2 + step);
+    int fur = profile.color, accent = profile.accent, ink = 0xFF483A2E;
+    int step = walking ? (int) (System.currentTimeMillis() / 180 % 2) : 0;
+    String animal = profile.animal;
+    r(c, 0x18365B45, 5, 37, 26, 1);
+    r(c, fur, 5, 25, 23, 9);
+    r(c, fur, 12, 15, 18, 14);
+    if ("bunny".equals(animal)) {
+      r(c, fur, 13, 2, 5, 15);
+      r(c, fur, 24, 2, 5, 15);
+      r(c, accent, 14, 4, 3, 11);
+      r(c, accent, 25, 4, 3, 11);
+      r(c, accent, 1, 27, 6, 6);
+    } else if ("dog".equals(animal)) {
+      r(c, accent, 9, 14, 6, 15);
+      r(c, accent, 27, 14, 6, 15);
+      r(c, fur, 1, 20 + step, 5, 13);
+    } else {
+      r(c, fur, 12, 9, 5, 9);
+      r(c, fur, 25, 9, 5, 9);
+      r(c, accent, 13, 11, 3, 5);
+      r(c, accent, 26, 11, 3, 5);
+      r(c, fur, 2, 21, 4, 12);
+      r(c, fur, 0, 16 + step, 4, 9);
+      if ("fox".equals(animal)) r(c, accent, 0, 16 + step, 4, 5);
+    }
+    if ("cat".equals(animal)) {
+      r(c, accent, 17, 15, 2, 5);
+      r(c, accent, 23, 15, 2, 5);
+      r(c, accent, 7, 26, 3, 5);
+    }
+    r(c, ink, 17, 22, 2, 3);
+    r(c, ink, 26, 22, 2, 3);
+    r(c, accent, 19, 27, 8, 4);
+    r(c, ink, 22, 27, 2, 1);
+    r(c, ink, 23, 29, 2, talking && (System.currentTimeMillis() / 250 % 2 == 0) ? 3 : 1);
+    r(c, fur, 9 + step, 33, 4, 3 - step);
+    r(c, fur, 24 - step, 33, 4, 2 + step);
+    r(c, accent, 9 + step, 35 - step, 4, 1);
+    r(c, accent, 24 - step, 34 + step, 4, 1);
     c.restore();
-    if (walking) postInvalidateDelayed(160);
+    if (walking || talking) postInvalidateDelayed(120);
   }
 }

@@ -33,6 +33,28 @@ public class MainActivity extends FlutterActivity {
   }
 
   private android.content.SharedPreferences.OnSharedPreferenceChangeListener taskListener;
+  private VoiceCapture voices;
+
+  @Override
+  protected void onActivityResult(int request, int result, Intent data) {
+    super.onActivityResult(request, result, data);
+    if (voices != null) voices.activityResult(request, result, data);
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int request, String[] permissions, int[] grants) {
+    super.onRequestPermissionsResult(request, permissions, grants);
+    if (voices != null) voices.permissionResult(request, grants);
+  }
+
+  @Override
+  protected void onStop() {
+    if (voices != null) {
+      voices.finish();
+      voices.stopPlayer();
+    }
+    super.onStop();
+  }
 
   private List<Map<String, Object>> taskSnapshot() {
     List<Map<String, Object>> tasks = new ArrayList<>();
@@ -41,6 +63,7 @@ public class MainActivity extends FlutterActivity {
       map.put("id", t.id);
       map.put("title", t.title);
       map.put("list", t.list);
+      map.put("companionId", t.companionId);
       map.put("due", t.due);
       map.put("done", t.done);
       map.put("reminded", t.reminded);
@@ -53,6 +76,7 @@ public class MainActivity extends FlutterActivity {
   public void onDestroy() {
     if (taskListener != null)
       Store.prefs(this).unregisterOnSharedPreferenceChangeListener(taskListener);
+    if (voices != null) voices.dispose();
     super.onDestroy();
   }
 
@@ -60,6 +84,7 @@ public class MainActivity extends FlutterActivity {
   public void configureFlutterEngine(FlutterEngine engine) {
     super.configureFlutterEngine(engine);
     ReminderReceiver.channels(this);
+    voices = new VoiceCapture(this);
     new EventChannel(engine.getDartExecutor().getBinaryMessenger(), "remindme/tasks")
         .setStreamHandler(
             new EventChannel.StreamHandler() {
@@ -86,6 +111,7 @@ public class MainActivity extends FlutterActivity {
         .setMethodCallHandler(
             (call, result) -> {
               try {
+                if (voices.handle(call.method, call.arguments, result)) return;
                 switch (call.method) {
                   case "permissions":
                     result.success(permissions());
@@ -99,12 +125,16 @@ public class MainActivity extends FlutterActivity {
                         task.put("id", t.id);
                         task.put("title", t.title);
                         task.put("list", t.list);
+                        task.put("companionId", t.companionId);
                         task.put("due", t.due);
                         task.put("done", t.done);
                         task.put("reminded", t.reminded);
                         tasks.add(task);
                       }
                       state.put("tasks", tasks);
+                      state.put("companions", PetProfile.decode(PetProfile.companions(this)));
+                      state.put("defaultCompanion", PetProfile.defaultId(this));
+                      state.put("timers", PetProfile.decode(PetProfile.timerJson(this)));
                       state.put("nudges", Store.prefs(this).getBoolean("nudges", false));
                       state.put("speech", Store.prefs(this).getBoolean("speech", false));
                       state.put("minutes", Store.prefs(this).getInt("minutes", 20));
@@ -130,6 +160,28 @@ public class MainActivity extends FlutterActivity {
                                   5, Math.min(120, ((Number) state.get("minutes")).intValue())))
                           .putStringSet("watched", watched)
                           .apply();
+                      if (state.containsKey("companions")) {
+                        JSONArray profiles = new JSONArray((List<?>) state.get("companions"));
+                        if (profiles.length() == 0)
+                          throw new IllegalArgumentException("Keep at least one companion.");
+                        String selected = (String) state.get("defaultCompanion");
+                        Store.prefs(this)
+                            .edit()
+                            .putString("companions", profiles.toString())
+                            .putString("defaultCompanion", selected)
+                            .putString(
+                                "timers", new JSONArray((List<?>) state.get("timers")).toString())
+                            .apply();
+                        ArrayList<Store.Task> existing = Store.tasks(this);
+                        boolean changed = false;
+                        for (Store.Task t : existing)
+                          if (!PetProfile.exists(this, t.companionId)) {
+                            t.companionId = PetProfile.defaultId(this);
+                            changed = true;
+                          }
+                        if (changed) Store.save(this, existing);
+                        else TaskWidgetProvider.refresh(this);
+                      }
                       result.success(null);
                       break;
                     }
@@ -142,6 +194,10 @@ public class MainActivity extends FlutterActivity {
                               ((Number) map.get("due")).longValue(),
                               (String) map.get("list"));
                       t.id = (String) map.get("id");
+                      t.companionId =
+                          map.containsKey("companionId")
+                              ? (String) map.get("companionId")
+                              : PetProfile.defaultId(this);
                       t.reminded = Boolean.TRUE.equals(map.get("reminded"));
                       Store.upsert(this, t);
                       result.success(taskSnapshot());
@@ -215,13 +271,30 @@ public class MainActivity extends FlutterActivity {
                     new Handler(getMainLooper()).postDelayed(() -> result.success(null), 200);
                     break;
                   case "preview":
-                    if (!CompanionService.running) {
-                      result.error("paused", "Wake Mochi first, then try a reminder.", null);
+                    {
+                      if (!Settings.canDrawOverlays(this)) {
+                        result.error(
+                            "overlay",
+                            "Allow the floating-pet permission in Companions first, then try the"
+                                + " visit again.",
+                            null);
+                        break;
+                      }
+                      Intent preview =
+                          new Intent(this, CompanionService.class).setAction("PREVIEW");
+                      if (call.arguments instanceof Map) {
+                        Map<?, ?> args = (Map<?, ?>) call.arguments;
+                        if (args.get("profile") instanceof Map)
+                          preview.putExtra(
+                              "profile",
+                              new JSONObject((Map<?, ?>) args.get("profile")).toString());
+                        preview.putExtra("kind", (String) args.get("kind"));
+                        preview.putExtra("text", (String) args.get("text"));
+                      }
+                      startForegroundService(preview);
+                      new Handler(getMainLooper()).postDelayed(() -> result.success(null), 250);
                       break;
                     }
-                    startService(new Intent(this, CompanionService.class).setAction("PREVIEW"));
-                    result.success(null);
-                    break;
                   case "apps":
                     {
                       List<ResolveInfo> found =

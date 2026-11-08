@@ -26,7 +26,13 @@ class TaskWidgetPreview extends StatelessWidget {
                 border: Border.all(color: const Color(0xFFDAE2D2))),
             child: Column(children: [
               Row(children: [
-                const PixelCat(size: 30, walking: false),
+                PixelCat(
+                    size: 30,
+                    walking: false,
+                    name: model.defaultPet.name,
+                    animal: model.defaultPet.animal,
+                    color: model.defaultPet.color,
+                    accent: model.defaultPet.accent),
                 const SizedBox(width: 10),
                 const Expanded(
                     child: Text('My small steps',
@@ -79,7 +85,8 @@ class TaskWidgetPreview extends StatelessWidget {
                                                 fontWeight: FontWeight.w600,
                                                 height: 1.4)),
                                         const SizedBox(height: 3),
-                                        Text('${task.list}$due',
+                                        Text(
+                                            '${task.list} · ${model.pet(task.companionId).name}$due',
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(

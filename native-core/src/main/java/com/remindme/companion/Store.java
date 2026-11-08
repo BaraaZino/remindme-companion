@@ -11,6 +11,7 @@ public final class Store {
 
   public static class Task {
     public String id = UUID.randomUUID().toString(), title, list = "Personal";
+    public String companionId = "mochi";
     public long due;
     public boolean done, reminded;
 
@@ -25,6 +26,7 @@ public final class Store {
           .put("id", id)
           .put("title", title)
           .put("list", list)
+          .put("companionId", companionId)
           .put("due", due)
           .put("done", done)
           .put("reminded", reminded);
@@ -39,6 +41,7 @@ public final class Store {
         JSONObject o = a.getJSONObject(i);
         Task t = new Task(o.getString("title"), o.optLong("due"), o.optString("list", "Personal"));
         t.id = o.getString("id");
+        t.companionId = o.optString("companionId", "mochi");
         t.done = o.optBoolean("done");
         t.reminded = o.optBoolean("reminded");
         out.add(t);
@@ -83,6 +86,7 @@ public final class Store {
   }
 
   public static synchronized void upsert(Context c, Task task) {
+    if (!PetProfile.exists(c, task.companionId)) task.companionId = PetProfile.defaultId(c);
     ArrayList<Task> a = tasks(c);
     for (Task existing : a)
       if (existing.id.equals(task.id)) {

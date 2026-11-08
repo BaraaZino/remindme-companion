@@ -1,12 +1,6 @@
 # RemindMe · Flutter
 
-The Flutter app for RemindMe Companion. See the [repository guide](../README.md) for setup, preview commands, Android permissions, and limitations.
-
-- `lib/main.dart`: task interface, companion settings, and browser pet preview.
-- `lib/companion_model.dart`: task and preference persistence, filters, and Android method channel.
-- `lib/pixel_cat.dart`: code-drawn animated pixel cat.
-- `android/app/src/main/java/com/remindme/companion/MainActivity.java`: Android bridge to the shared Java pet/reminder service in `../native-core/` at the repository root.
-- `test/companion_test.dart`: persistence, task filtering, user interaction, and responsive layout checks.
+The active Flutter app lives here. Start with the [repository guide](../README.md) for features, build commands, architecture, and a beginner-friendly reading order.
 
 Run from the repository root:
 
@@ -14,8 +8,9 @@ Run from the repository root:
 ./scripts/preview_flutter.sh
 ./scripts/flutterw analyze
 ./scripts/flutterw test
+./scripts/build_flutter_apk.sh
 ```
 
-The browser shows labeled editable sample tasks on first use. Android starts with the private task store already on the phone (empty for a fresh install). No account or cloud backend is required.
+The bottom tabs are Tasks, Companions, and App timers. Each task and timer stores a companion ID. Companion settings include animal design, size, colors, bubble typography, visit motion, and separate recorded/imported audio clips for task and timer reminders.
 
-The header’s widget icon opens an interactive home-screen widget preview. `lib/task_widget_preview.dart` renders the preview; the Android `TaskWidgetProvider`, `TaskWidgetService`, and `WidgetAddActivity` live in the shared native core. Task-specific platform calls and a task-change event stream keep the app and widget synchronized.
+Android overlay/task/widget logic is in the shared `../native-core/` folder. Android-specific Flutter bridge and recording code are in `android/app/src/main/java/com/remindme/companion/`. The browser uses simulated visits and browser audio APIs; it cannot float over other desktop apps or track phone usage.

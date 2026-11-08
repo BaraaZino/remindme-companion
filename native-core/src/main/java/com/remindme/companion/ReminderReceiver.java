@@ -25,7 +25,7 @@ public class ReminderReceiver extends BroadcastReceiver {
     Notification n =
         new Notification.Builder(c, "tasks")
             .setSmallIcon(com.remindme.companion.R.drawable.ic_cat)
-            .setContentTitle("Mochi has a little reminder")
+            .setContentTitle(PetProfile.resolve(c, t.companionId).name + " has a little reminder")
             .setContentText(t.title)
             .setStyle(new Notification.BigTextStyle().bigText(t.title))
             .setContentIntent(open(c))

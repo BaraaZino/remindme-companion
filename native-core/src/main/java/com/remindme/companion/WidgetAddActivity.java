@@ -29,6 +29,28 @@ public class WidgetAddActivity extends Activity {
     list.setSingleLine(true);
     list.setFilters(new android.text.InputFilter[] {new android.text.InputFilter.LengthFilter(40)});
     form.addView(list);
+    java.util.List<PetProfile> profiles = new java.util.ArrayList<>();
+    org.json.JSONArray all = PetProfile.companions(this);
+    java.util.List<String> names = new java.util.ArrayList<>();
+    int selected = 0;
+    for (int i = 0; i < all.length(); i++) {
+      PetProfile profile = PetProfile.from(all.optJSONObject(i));
+      profiles.add(profile);
+      names.add(profile.name);
+      if (profile.id.equals(PetProfile.defaultId(this))) selected = i;
+    }
+    Spinner companion = new Spinner(this);
+    companion.setContentDescription("Reminder companion");
+    companion.setAdapter(
+        new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, names));
+    companion.setSelection(
+        Math.max(
+            0,
+            Math.min(
+                profiles.size() - 1,
+                state == null ? selected : state.getInt("companion", selected))));
+    form.addView(companion);
+    this.companionInput = companion;
     if (state != null) {
       title.setText(state.getString("title", ""));
       list.setText(state.getString("list", "Personal"));
@@ -53,8 +75,9 @@ public class WidgetAddActivity extends Activity {
                       return;
                     }
                     String group = list.getText().toString().trim();
-                    Store.upsert(
-                        this, new Store.Task(name, 0, group.isEmpty() ? "Personal" : group));
+                    Store.Task task = new Store.Task(name, 0, group.isEmpty() ? "Personal" : group);
+                    task.companionId = profiles.get(companion.getSelectedItemPosition()).id;
+                    Store.upsert(this, task);
                     finish();
                   });
           title.requestFocus();
@@ -68,10 +91,12 @@ public class WidgetAddActivity extends Activity {
   }
 
   private EditText titleInput, listInput;
+  private Spinner companionInput;
 
   @Override
   protected void onSaveInstanceState(Bundle state) {
     super.onSaveInstanceState(state);
+    if (companionInput != null) state.putInt("companion", companionInput.getSelectedItemPosition());
     if (titleInput != null) {
       state.putString("title", titleInput.getText().toString());
       state.putString("list", listInput.getText().toString());

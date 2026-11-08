@@ -1,11 +1,22 @@
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 class PixelCat extends StatefulWidget {
-  const PixelCat({super.key, this.size = 100, this.walking = true, this.onTap});
+  const PixelCat(
+      {super.key,
+      this.size = 100,
+      this.walking = true,
+      this.talking = false,
+      this.onTap,
+      this.animal = 'cat',
+      this.name = 'Mochi',
+      this.color = 0xFFD99458,
+      this.accent = 0xFFFFE4BB,
+      this.faceRight = true});
   final double size;
-  final bool walking;
+  final bool walking, talking, faceRight;
+  final String animal, name;
+  final int color, accent;
   final VoidCallback? onTap;
   @override
   State<PixelCat> createState() => _PixelCatState();
@@ -13,87 +24,114 @@ class PixelCat extends StatefulWidget {
 
 class _PixelCatState extends State<PixelCat>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 750),
-  )..repeat();
+  late final AnimationController controller = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 720))
+    ..repeat();
   @override
   void dispose() {
-    _controller.dispose();
+    controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) => Semantics(
-        label: 'Mochi, your ginger pixel cat',
-        button: widget.onTap != null,
-        child: GestureDetector(
+      label: '${widget.name}, your ${widget.animal} companion',
+      button: widget.onTap != null,
+      child: GestureDetector(
           onTap: widget.onTap,
           child: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, _) => CustomPaint(
-              size: Size(widget.size, widget.size),
-              painter: CatPainter(
-                widget.walking && !MediaQuery.disableAnimationsOf(context)
-                    ? _controller.value
-                    : 0,
-              ),
-            ),
-          ),
-        ),
-      );
+              animation: controller,
+              builder: (context, _) => CustomPaint(
+                  size: Size.square(widget.size),
+                  painter: AnimalPainter(
+                      phase: MediaQuery.disableAnimationsOf(context)
+                          ? 0
+                          : controller.value,
+                      walking: widget.walking,
+                      talking: widget.talking,
+                      animal: widget.animal,
+                      color: widget.color,
+                      accent: widget.accent,
+                      faceRight: widget.faceRight)))));
 }
 
-class CatPainter extends CustomPainter {
-  CatPainter(this.phase);
+class AnimalPainter extends CustomPainter {
+  AnimalPainter(
+      {required this.phase,
+      required this.walking,
+      required this.talking,
+      required this.animal,
+      required this.color,
+      required this.accent,
+      required this.faceRight});
   final double phase;
+  final bool walking, talking, faceRight;
+  final String animal;
+  final int color, accent;
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..isAntiAlias = false;
-    canvas.save();
-    final scale = math.min(size.width / 36, size.height / 34);
-    canvas.translate(
-      (size.width - 36 * scale) / 2,
-      (size.height - 34 * scale) / 2,
-    );
-    canvas.scale(scale);
-    void r(int c, double x, double y, double w, double h) {
-      paint.color = Color(c);
-      canvas.drawRect(Rect.fromLTWH(x, y, w, h), paint);
+  void paint(Canvas c, Size size) {
+    final p = Paint()..isAntiAlias = false;
+    c.save();
+    final s = math.min(size.width / 36, size.height / 40);
+    c.translate((size.width - 36 * s) / 2, (size.height - 40 * s) / 2);
+    c.scale(s, s);
+    if (!faceRight) {
+      c.translate(36, 0);
+      c.scale(-1, 1);
+    }
+    void r(int color, double x, double y, double w, double h) {
+      p.color = Color(color);
+      c.drawRect(Rect.fromLTWH(x, y, w, h), p);
     }
 
-    const fur = 0xFFD99458,
-        stripe = 0xFFAF6C3C,
-        ink = 0xFF483A2E,
-        cream = 0xFFFFE4BB;
-    final step = phase < .5 ? 0.0 : 1.0;
-    r(0x14365B45, 5, 31, 26, 1);
-    r(fur, 5, 20, 23, 8);
-    r(fur, 12, 10, 18, 15);
-    r(fur, 12, 4, 5, 9);
-    r(fur, 25, 4, 5, 9);
-    r(0xFFEFB598, 13, 6, 3, 5);
-    r(0xFFEFB598, 26, 6, 3, 5);
-    r(fur, 2, 16, 4, 10);
-    r(fur, 1, 12 + step, 3, 6);
-    r(fur, 0, 10 + step, 3, 4);
-    r(stripe, 7, 20, 3, 5);
-    r(stripe, 17, 10, 2, 4);
-    r(stripe, 23, 10, 2, 4);
-    r(ink, 17, 17, 2, 3);
-    r(ink, 26, 17, 2, 3);
-    r(cream, 19, 22, 8, 3);
-    r(ink, 22, 22, 2, 1);
-    r(ink, 23, 24, 2, 1);
-    r(0xFFEDB690, 15, 21, 3, 1);
-    r(0xFFEDB690, 28, 21, 3, 1);
-    r(fur, 9 + step, 27, 4, 3 - step);
-    r(fur, 24 - step, 27, 4, 2 + step);
-    r(cream, 9 + step, 29 - step, 4, 1);
-    r(cream, 24 - step, 28 + step, 4, 1);
-    canvas.restore();
+    final step = walking && phase > .5 ? 1.0 : 0.0;
+    const ink = 0xFF483A2E;
+    r(0x18365B45, 5, 37, 26, 1);
+    r(color, 5, 25, 23, 9);
+    r(color, 12, 15, 18, 14);
+    if (animal == 'bunny') {
+      r(color, 13, 2, 5, 15);
+      r(color, 24, 2, 5, 15);
+      r(accent, 14, 4, 3, 11);
+      r(accent, 25, 4, 3, 11);
+      r(accent, 1, 27, 6, 6);
+    } else if (animal == 'dog') {
+      r(accent, 9, 14, 6, 15);
+      r(accent, 27, 14, 6, 15);
+      r(color, 1, 20 + step, 5, 13);
+    } else {
+      r(color, 12, 9, 5, 9);
+      r(color, 25, 9, 5, 9);
+      r(accent, 13, 11, 3, 5);
+      r(accent, 26, 11, 3, 5);
+      r(color, 2, 21, 4, 12);
+      r(color, 0, 16 + step, 4, 9);
+      if (animal == 'fox') r(accent, 0, 16 + step, 4, 5);
+    }
+    if (animal == 'cat') {
+      r(accent, 17, 15, 2, 5);
+      r(accent, 23, 15, 2, 5);
+      r(accent, 7, 26, 3, 5);
+    }
+    r(ink, 17, 22, 2, 3);
+    r(ink, 26, 22, 2, 3);
+    r(accent, 19, 27, 8, 4);
+    r(ink, 22, 27, 2, 1);
+    r(ink, 23, 29, 2, talking && phase > .5 ? 3 : 1);
+    r(color, 9 + step, 33, 4, 3 - step);
+    r(color, 24 - step, 33, 4, 2 + step);
+    r(accent, 9 + step, 35 - step, 4, 1);
+    r(accent, 24 - step, 34 + step, 4, 1);
+    c.restore();
   }
 
   @override
-  bool shouldRepaint(CatPainter oldDelegate) => oldDelegate.phase != phase;
+  bool shouldRepaint(AnimalPainter old) =>
+      phase != old.phase ||
+      walking != old.walking ||
+      talking != old.talking ||
+      animal != old.animal ||
+      color != old.color ||
+      accent != old.accent ||
+      faceRight != old.faceRight;
 }

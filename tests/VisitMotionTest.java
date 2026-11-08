@@ -1,0 +1,5 @@
+import com.remindme.companion.VisitMotion;
+public class VisitMotionTest {
+ static void check(boolean condition,String reason){if(!condition)throw new AssertionError(reason);}
+ public static void main(String[]args){VisitMotion m=new VisitMotion();m.start(400,80,160,true,80,5000,0);check(m.x==-80,"Starts fully off the left edge");m.tick(3000,true);check(m.phase==VisitMotion.Phase.TALKING&&m.x==160,"Stops before speaking");m.tick(7999,true);check(m.phase==VisitMotion.Phase.TALKING,"Holds the bubble");m.tick(8000,false);check(m.phase==VisitMotion.Phase.TALKING,"Waits for voice completion");m.tick(9000,true);check(m.phase==VisitMotion.Phase.EXITING,"Leaves after voice and text");m.tick(12000,true);check(m.phase==VisitMotion.Phase.IDLE&&m.x>=400,"Continues right and fully exits");m.start(400,80,160,false,80,5000,0);m.tick(3000,true);check(m.x==160,"Right entry reaches the same stopping point");m.tick(8000,true);m.tick(11000,true);check(m.phase==VisitMotion.Phase.IDLE&&m.x+80<=0,"Right entry continues left off screen");System.out.println("Passed visit entry, stop, voice wait, and exit checks from both sides.");}
+}
