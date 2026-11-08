@@ -79,3 +79,21 @@ On Android, tap **Add to home screen** on that preview to ask your launcher to p
 Both Android interfaces share the widget implementation and task store. Each task write refreshes placed widgets. The Flutter app listens for native task changes, and task mutations update individual records so settings changes cannot overwrite widget-created tasks. New tasks made in the quick-add dialog have no reminder until one is added in the app.
 
 The browser widget is a simulation inside the Flutter preview, not a desktop OS widget. Native widget code is compiled with the Android build, but launcher placement, quick-add, and button behavior still require device/emulator testing. To check them: add two tasks from the widget, complete one, delete the other, then open the app and verify **Done** and the pending list. Also test an empty list, more than one screen of tasks, resizing, and changes made from the app.
+
+## Test the Flutter app on an Android phone
+
+For a modern ARM64 Android phone such as the POCO X7 Pro, build the Flutter APK with:
+
+```sh
+./scripts/build_flutter_apk.sh
+```
+
+The first build needs Android SDK platforms 35 and 36, Build Tools 36.0.0, NDK 28.2.13676358, and CMake 3.22.1; Android Studio’s SDK Manager can install them.
+
+The result is `dist/RemindMe-Flutter-arm64.apk`. This uses the Flutter interface, shared native pet service, and native task widget. It is signed with the existing local development key when available; keep `.tools/debug.keystore` to install future test builds as updates. The large Flutter APK is distributed as a private GitHub release asset rather than committed to git.
+
+Transfer that APK to your phone and open it with the phone’s file manager. If prompted, allow that file manager to install this APK. Open **RemindMe Companion**, then use **Companion** to enable notifications, floating-pet permission, and optional usage access. Return to the app and tap **Wake Mochi** after granting overlay access. Use the widget icon to request home-screen placement or add **RemindMe tasks** from the launcher’s Widgets picker.
+
+For HyperOS, if the pet is hidden or stopped after leaving the app, check RemindMe’s per-app permissions for pop-up/background-window access and its battery/background restrictions. Menu names vary by HyperOS version; these additional settings should only be changed for RemindMe. Xiaomi documents the separate pop-up controls in its [permission guide](https://www.mi.com/global/support/faq/details/KA-497759/).
+
+A useful first test: add a task due in a few minutes; start Mochi and switch apps; check the reminder bubble and snooze; add a widget and try adding/completing/removing tasks; then choose a watched app and set the scrolling nudge to five minutes.

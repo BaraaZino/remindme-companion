@@ -16,3 +16,4 @@ local.properties
 .idea/
 *.idsig
 **/__pycache__/
+/dist/RemindMe-Flutter-*.apk
