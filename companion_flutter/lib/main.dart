@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'companion_model.dart';
 import 'pixel_cat.dart';
+import 'task_widget_preview.dart';
 
 const ink = Color(0xFF293E34);
 const green = Color(0xFF42634D);
@@ -196,18 +197,22 @@ class _CompanionHomeState extends State<CompanionHome>
                         const Center(child: CircularProgressIndicator())
                       else
                         ListView(
+                          key: ValueKey(page),
                           padding: const EdgeInsets.fromLTRB(24, 24, 24, 28),
                           children: [
                             Row(
                               children: [
-                                const Text(
+                                const Flexible(
+                                    child: Text(
                                   'remindme',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 23,
                                     fontWeight: FontWeight.w800,
                                     letterSpacing: -1.1,
                                   ),
-                                ),
+                                )),
                                 const Text(
                                   '.',
                                   style: TextStyle(
@@ -217,6 +222,13 @@ class _CompanionHomeState extends State<CompanionHome>
                                   ),
                                 ),
                                 const Spacer(),
+                                IconButton(
+                                    tooltip: 'Home-screen widget',
+                                    onPressed: () => setState(() {
+                                          page = 2;
+                                        }),
+                                    icon: const Icon(Icons.widgets_outlined,
+                                        size: 22)),
                                 IconButton(
                                   tooltip: 'Companion settings',
                                   onPressed: () => setState(() {
@@ -239,8 +251,10 @@ class _CompanionHomeState extends State<CompanionHome>
                               ),
                             if (page == 0)
                               ...dayContent()
+                            else if (page == 1)
+                              ...companionContent()
                             else
-                              ...companionContent(),
+                              ...widgetContent(),
                           ],
                         ),
                       if (model.running && !isAndroid) previewPet(),
@@ -958,6 +972,101 @@ class _CompanionHomeState extends State<CompanionHome>
           ),
         ),
       ];
+  List<Widget> widgetContent() => [
+        eyebrow('A little less opening your phone'),
+        const SizedBox(height: 10),
+        title('Your tasks.\nWithin reach.'),
+        subtitle('Add, finish, and remove tasks—right from your home screen.'),
+        const SizedBox(height: 24),
+        Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+                color: mint, borderRadius: BorderRadius.circular(28)),
+            child: TaskWidgetPreview(model: model, onAdd: quickAddWidgetTask)),
+        const SizedBox(height: 20),
+        if (isAndroid)
+          FilledButton.icon(
+              onPressed: () => model.action('pinWidget'),
+              icon: const Icon(Icons.add_to_home_screen),
+              label: const Text('Add to home screen')),
+        const SizedBox(height: 12),
+        const Text(
+            'Tap the circle to finish a task. Tap × to remove it. Add a task opens a small quick-add dialog. Changes stay in sync with My day.',
+            style: TextStyle(fontSize: 13, color: muted, height: 1.6)),
+        const SizedBox(height: 16),
+        panel(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(kIsWeb ? 'Interactive widget preview' : 'Place your widget',
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          Text(
+              kIsWeb
+                  ? 'Try it here with your current tasks. The real home-screen widget is available on Android.'
+                  : 'Long-press an empty space on your home screen, choose Widgets, and find RemindMe tasks. Drag it onto your home screen and resize it to fit.',
+              style: const TextStyle(fontSize: 12, color: muted, height: 1.6)),
+        ])),
+        TextButton.icon(
+            onPressed: () => setState(() {
+                  page = 0;
+                }),
+            icon: const Icon(Icons.arrow_back_rounded, size: 18),
+            label: const Text('Back to My day')),
+      ];
+
+  Future<void> quickAddWidgetTask() async {
+    final name = TextEditingController(),
+        list = TextEditingController(text: 'Personal');
+    String? error;
+    await showDialog<void>(
+        context: context,
+        builder: (context) => StatefulBuilder(
+            builder: (context, setLocal) => AlertDialog(
+                    title: const Text('A new small step'),
+                    content: SizedBox(
+                        width: 360,
+                        child:
+                            Column(mainAxisSize: MainAxisSize.min, children: [
+                          TextField(
+                              controller: name,
+                              autofocus: true,
+                              maxLength: 200,
+                              textCapitalization: TextCapitalization.sentences,
+                              decoration: InputDecoration(
+                                  labelText: 'What would you like to get done?',
+                                  errorText: error)),
+                          TextField(
+                              controller: list,
+                              maxLength: 40,
+                              decoration:
+                                  const InputDecoration(labelText: 'List'))
+                        ])),
+                    actions: [
+                      TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancel')),
+                      FilledButton(
+                          onPressed: () async {
+                            if (name.text.trim().isEmpty) {
+                              setLocal(() => error = 'Give your task a name.');
+                              return;
+                            }
+                            await model.upsert(Task(
+                                id: DateTime.now()
+                                    .microsecondsSinceEpoch
+                                    .toString(),
+                                title: name.text.trim(),
+                                list: list.text.trim().isEmpty
+                                    ? 'Personal'
+                                    : list.text.trim()));
+                            if (context.mounted) Navigator.pop(context);
+                          },
+                          child: const Text('Add task'))
+                    ])));
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    name.dispose();
+    list.dispose();
+  }
+
   Widget permissionRow(String label, bool allowed, String action) => ListTile(
         contentPadding: EdgeInsets.zero,
         dense: true,
@@ -1164,7 +1273,7 @@ class _CompanionHomeState extends State<CompanionHome>
                                   .millisecondsSinceEpoch;
                               task.reminded = false;
                               shown.remove(task.id);
-                              await model.save();
+                              await model.upsert(task);
                               setState(() {
                                 bubble = null;
                               });

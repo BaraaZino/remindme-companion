@@ -22,6 +22,14 @@
         <action android:name="android.intent.action.BOOT_COMPLETED" />
       </intent-filter>
     </receiver>
+    <activity android:name=".WidgetAddActivity" android:exported="false" android:theme="@style/WidgetQuickAddTheme" android:excludeFromRecents="true" />
+    <receiver android:name=".TaskWidgetProvider" android:exported="false" android:label="RemindMe tasks">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+      </intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/task_widget_info" />
+    </receiver>
+    <service android:name=".TaskWidgetService" android:exported="false" android:permission="android.permission.BIND_REMOTEVIEWS" />
   </application>
   <queries>
     <intent>

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:remindme_companion/companion_model.dart';
@@ -94,6 +95,84 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     debugDefaultTargetPlatformOverride = null;
   });
+  test(
+      'Android task mutations preserve widget-created tasks and settings never replace tasks',
+      () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    final native = [Task(id: 'widget', title: 'Added on home screen').toJson()];
+    final calls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(CompanionModel.channel, (call) async {
+      calls.add(call);
+      if (call.method == 'upsertTask') {
+        native.add(Map<String, dynamic>.from(call.arguments as Map));
+        return native;
+      }
+      if (call.method == 'completeTask') {
+        final args = call.arguments as Map;
+        native.firstWhere((t) => t['id'] == args['id'])['done'] = args['done'];
+        return native;
+      }
+      if (call.method == 'deleteTask') {
+        native.removeWhere((t) => t['id'] == call.arguments);
+        return native;
+      }
+      return null;
+    });
+    addTearDown(() => TestDefaultBinaryMessengerBinding
+        .instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(CompanionModel.channel, null));
+    final model = CompanionModel()..loaded = true;
+    await model.upsert(Task(id: 'app', title: 'Added inside app'));
+    expect(model.tasks.map((t) => t.id), ['widget', 'app']);
+    await model.toggle(model.tasks.first);
+    expect(model.tasks.first.done, true);
+    await model.remove(model.tasks.last);
+    expect(model.tasks.single.id, 'widget');
+    model.minutes = 30;
+    await model.save();
+    final settings = calls.last.arguments as Map;
+    expect(calls.last.method, 'saveState');
+    expect(settings.containsKey('tasks'), false);
+    expect(native.single['done'], true);
+    model.dispose();
+  });
+
+  testWidgets('Widget preview can add, complete, and remove shared tasks',
+      (tester) async {
+    tester.view.physicalSize = const Size(430, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final model = CompanionModel()
+      ..loaded = true
+      ..tasks = [
+        Task(id: 'finish', title: 'Finish me'),
+        Task(id: 'remove', title: 'Remove me')
+      ];
+    await tester.pumpWidget(RemindMeApp(model: model));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.byTooltip('Home-screen widget'));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.text('Add a task'));
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.enterText(find.byType(TextField).first, 'From the widget');
+    await tester.tap(find.text('Add task'));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(model.tasks.length, 3);
+    await tester.tap(find.byTooltip('Complete Finish me'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(model.visibleTasks('Done').single.title, 'Finish me');
+    await tester.tap(find.byTooltip('Delete Remove me'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(model.tasks.any((t) => t.id == 'remove'), false);
+    expect(model.visibleTasks('All tasks').single.title, 'From the widget');
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   testWidgets('Narrow and desktop layouts render without overflow', (
     tester,
   ) async {
@@ -108,6 +187,10 @@ void main() {
       await tester.tap(find.text('Companion').first);
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('A kinder kind\nof reminder.'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.byTooltip('Home-screen widget'));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Your tasks.\nWithin reach.'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 1));

@@ -1,0 +1,4 @@
+<resources>
+ <style name="WidgetQuickAddTheme" parent="android:style/Theme.Material.Light.NoActionBar"><item name="android:windowIsTranslucent">true</item><item name="android:windowBackground">@android:color/transparent</item><item name="android:backgroundDimEnabled">false</item></style>
+ <style name="WidgetQuickAddDialogTheme" parent="android:style/Theme.Material.Light.Dialog.Alert"><item name="android:colorAccent">#42634D</item></style>
+</resources>

@@ -57,11 +57,40 @@ public final class Store {
     }
     prefs(c).edit().putString("tasks", a.toString()).apply();
     ReminderReceiver.schedule(c);
+    TaskWidgetProvider.refresh(c);
   }
 
   public static synchronized void complete(Context c, String id) {
+    setCompleted(c, id, true);
+  }
+
+  public static synchronized void remove(Context c, String id) {
     ArrayList<Task> a = tasks(c);
-    for (Task t : a) if (t.id.equals(id)) t.done = true;
+    a.removeIf(t -> t.id.equals(id));
+    save(c, a);
+    c.getSystemService(android.app.NotificationManager.class).cancel(id.hashCode());
+  }
+
+  public static synchronized void setCompleted(Context c, String id, boolean done) {
+    ArrayList<Task> a = tasks(c);
+    for (Task t : a)
+      if (t.id.equals(id)) {
+        t.done = done;
+        if (!done) t.reminded = false;
+      }
+    save(c, a);
+    if (done) c.getSystemService(android.app.NotificationManager.class).cancel(id.hashCode());
+  }
+
+  public static synchronized void upsert(Context c, Task task) {
+    ArrayList<Task> a = tasks(c);
+    for (Task existing : a)
+      if (existing.id.equals(task.id)) {
+        task.done = existing.done;
+        if (task.due == existing.due) task.reminded |= existing.reminded;
+      }
+    a.removeIf(t -> t.id.equals(task.id));
+    a.add(task);
     save(c, a);
   }
 

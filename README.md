@@ -21,7 +21,7 @@ For Android, open `companion_flutter/` in Android Studio or VS Code with the Flu
 ./scripts/flutterw test
 ```
 
-The old `dist/RemindMe-Companion.apk` is the initial **Java** version, not the Flutter build. The original Java interface remains in `app/` for reference and can still be built with `python3 scripts/build_apk.py`. Both Android interfaces use `native-core/` for reminder scheduling, overlay behavior, task storage, and usage timing. The Flutter browser build does not execute that Android code.
+The `dist/RemindMe-Companion.apk` uses the **Java interface**, not the Flutter interface. It includes the shared native home-screen widget. The original Java interface remains in `app/` for reference and can still be built with `python3 scripts/build_apk.py`. Both Android interfaces use `native-core/` for reminder scheduling, overlay behavior, task storage, and usage timing. The Flutter browser build does not execute that Android code.
 
 ## Original Android APK
 
@@ -69,3 +69,13 @@ java -cp build/tests UsageSessionTest
 - Deny overlay or usage access and check the corresponding setup guidance. Check notification-denied behavior and restart the phone.
 
 The Java timer tests and APK compilation/signature checks do not replace these device tests.
+
+## Home-screen task widget
+
+Use the widget icon in the Flutter app header for an interactive preview. It uses your current tasks: **Add a task** opens a quick-add dialog, the circle completes a task, and **×** removes it. Completed tasks remain under **Done** in the app; removed tasks are deleted.
+
+On Android, tap **Add to home screen** on that preview to ask your launcher to pin the real widget, or long-press an empty home-screen area, choose **Widgets**, and select **RemindMe tasks**. The widget resizes and scrolls through unfinished tasks, including undated and future tasks. Its title opens the app. It works while the pet is paused and needs no overlay or usage-access permission. A launcher must support widgets; some launchers require the manual placement route.
+
+Both Android interfaces share the widget implementation and task store. Each task write refreshes placed widgets. The Flutter app listens for native task changes, and task mutations update individual records so settings changes cannot overwrite widget-created tasks. New tasks made in the quick-add dialog have no reminder until one is added in the app.
+
+The browser widget is a simulation inside the Flutter preview, not a desktop OS widget. Native widget code is compiled with the Android build, but launcher placement, quick-add, and button behavior still require device/emulator testing. To check them: add two tasks from the widget, complete one, delete the other, then open the app and verify **Done** and the pending list. Also test an empty list, more than one screen of tasks, resizing, and changes made from the app.

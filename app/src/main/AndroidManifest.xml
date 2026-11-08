@@ -1,14 +1,41 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
- <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
- <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"/>
- <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
- <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
- <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
- <queries><intent><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent><intent><action android:name="android.intent.action.TTS_SERVICE"/></intent></queries>
- <application android:theme="@style/AppTheme" android:label="RemindMe Companion" android:icon="@drawable/ic_cat" android:allowBackup="false" android:supportsRtl="true">
-  <activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity>
-  <service android:name=".CompanionService" android:exported="false" android:foregroundServiceType="specialUse"><property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User enabled visible walking pet overlay that delivers task reminders and optional screen time nudges"/></service>
-  <receiver android:name=".ReminderReceiver" android:exported="false"><intent-filter><action android:name="android.intent.action.BOOT_COMPLETED"/></intent-filter></receiver>
- </application>
+  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+  <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+  <queries>
+    <intent>
+      <action android:name="android.intent.action.MAIN" />
+      <category android:name="android.intent.category.LAUNCHER" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.TTS_SERVICE" />
+    </intent>
+  </queries>
+  <application android:theme="@style/AppTheme" android:label="RemindMe Companion" android:icon="@drawable/ic_cat" android:allowBackup="false" android:supportsRtl="true">
+    <activity android:name=".MainActivity" android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+    <service android:name=".CompanionService" android:exported="false" android:foregroundServiceType="specialUse">
+      <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User enabled visible walking pet overlay that delivers task reminders and optional screen time nudges" />
+    </service>
+    <receiver android:name=".ReminderReceiver" android:exported="false">
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+      </intent-filter>
+    </receiver>
+    <activity android:name=".WidgetAddActivity" android:exported="false" android:theme="@style/WidgetQuickAddTheme" android:excludeFromRecents="true" />
+    <receiver android:name=".TaskWidgetProvider" android:exported="false" android:label="RemindMe tasks">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+      </intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/task_widget_info" />
+    </receiver>
+    <service android:name=".TaskWidgetService" android:exported="false" android:permission="android.permission.BIND_REMOTEVIEWS" />
+  </application>
 </manifest>

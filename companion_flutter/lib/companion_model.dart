@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -51,6 +52,17 @@ class CompanionModel extends ChangeNotifier {
   List<Map<String, String>> apps = [];
   String? error;
   SharedPreferences? _preferences;
+  StreamSubscription<dynamic>? _taskChanges;
+
+  List<Task> _decodeTasks(List<dynamic> items) => items
+      .map((t) => Task.fromJson(Map<String, dynamic>.from(t as Map)))
+      .toList();
+
+  @override
+  void dispose() {
+    _taskChanges?.cancel();
+    super.dispose();
+  }
 
   Future<void> load() async {
     try {
@@ -96,7 +108,15 @@ class CompanionModel extends ChangeNotifier {
       minutes = ((state['minutes'] as num?)?.toInt() ?? 20).clamp(5, 120);
       watched = Set<String>.from((state['watched'] as List?) ?? []);
       demo = state['demo'] as bool? ?? kIsWeb;
-      if (isAndroid) _permissions(state);
+      if (isAndroid) {
+        _permissions(state);
+        _taskChanges ??= const EventChannel('remindme/tasks')
+            .receiveBroadcastStream()
+            .listen((event) {
+          tasks = _decodeTasks(event as List);
+          notifyListeners();
+        }, onError: (_) {});
+      }
       loaded = true;
       notifyListeners();
     } catch (e) {
@@ -142,7 +162,8 @@ class CompanionModel extends ChangeNotifier {
     notifyListeners();
     try {
       if (isAndroid) {
-        await channel.invokeMethod('saveState', state);
+        await channel.invokeMethod(
+            'saveState', Map<String, dynamic>.of(state)..remove('tasks'));
       } else {
         _preferences ??= await SharedPreferences.getInstance();
         await _preferences!.setString(
@@ -164,18 +185,35 @@ class CompanionModel extends ChangeNotifier {
     } else {
       tasks[i] = task;
     }
-    await save();
+    await _persistTask('upsertTask', task.toJson());
   }
 
   Future<void> toggle(Task task) async {
     task.done = !task.done;
     if (!task.done) task.reminded = false;
-    await save();
+    await _persistTask('completeTask', {'id': task.id, 'done': task.done});
   }
 
   Future<void> remove(Task task) async {
     tasks.removeWhere((t) => t.id == task.id);
-    await save();
+    await _persistTask('deleteTask', task.id);
+  }
+
+  Future<void> _persistTask(String method, Object arguments) async {
+    if (!isAndroid) {
+      await save();
+      return;
+    }
+    notifyListeners();
+    try {
+      final result =
+          await channel.invokeMethod<List<dynamic>>(method, arguments);
+      if (result != null) tasks = _decodeTasks(result);
+      error = null;
+    } catch (_) {
+      error = 'Could not save this task. Please reopen the app and try again.';
+    }
+    notifyListeners();
   }
 
   Future<void> clearDemo() async {
