@@ -1,0 +1,16 @@
+.tools/
+build/
+.gradle/
+local.properties
+*.jks
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/build/
+**/local.properties
+**/.gradle/
+**/key.properties
+*.keystore
+.DS_Store
+*.iml
+.idea/
