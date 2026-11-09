@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'companion_model.dart';
-import 'pixel_cat.dart';
 
-/// Interactive visual counterpart to the Android RemoteViews home-screen widget.
+/// Interactive counterpart of the compact Android RemoteViews task list.
 class TaskWidgetPreview extends StatelessWidget {
   const TaskWidgetPreview(
       {super.key, required this.model, required this.onAdd});
@@ -19,50 +18,50 @@ class TaskWidgetPreview extends StatelessWidget {
         final tasks = model.visibleTasks('All tasks');
         return Container(
             height: 350,
-            padding: const EdgeInsets.all(14),
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-                color: const Color(0xFFF8F7F2),
-                borderRadius: BorderRadius.circular(24),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: const Color(0xFFDAE2D2))),
             child: Column(children: [
-              Row(children: [
-                PixelCat(
-                    size: 30,
-                    walking: false,
-                    name: model.defaultPet.name,
-                    animal: model.defaultPet.animal,
-                    color: model.defaultPet.color,
-                    accent: model.defaultPet.accent),
-                const SizedBox(width: 10),
-                const Expanded(
-                    child: Text('My small steps',
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: ink))),
-                const SizedBox(width: 6),
-                Text('${tasks.length}',
-                    style: const TextStyle(fontSize: 12, color: green))
-              ]),
-              const SizedBox(height: 6),
+              Container(
+                  height: 48,
+                  color: green,
+                  padding: const EdgeInsets.only(left: 14),
+                  child: Row(children: [
+                    const Expanded(
+                        child: Text('My tasks',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white))),
+                    IconButton(
+                        tooltip: 'Add a task',
+                        onPressed: onAdd,
+                        icon: const Icon(Icons.add,
+                            size: 28, color: Colors.white))
+                  ])),
               Expanded(
                   child: tasks.isEmpty
                       ? const Center(
-                          child: Text(
-                              'A little room to begin.\nAdd your first small step below.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: 14, color: muted, height: 1.5)))
-                      : ListView.builder(
+                          child: Padding(
+                              padding: EdgeInsets.all(12),
+                              child: Text('No tasks. Tap + to add one.',
+                                  textAlign: TextAlign.center,
+                                  style:
+                                      TextStyle(fontSize: 13, color: muted))))
+                      : ListView.separated(
+                          padding: EdgeInsets.zero,
                           itemCount: tasks.length,
+                          separatorBuilder: (context, index) => const Divider(
+                              height: 1, color: Color(0xFFEEF0EC)),
                           itemBuilder: (context, index) {
                             final task = tasks[index];
-                            final due = task.due == 0
-                                ? ''
-                                : ' · ${MaterialLocalizations.of(context).formatShortDate(DateTime.fromMillisecondsSinceEpoch(task.due))}';
-                            return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 3),
+                            return ConstrainedBox(
+                                constraints:
+                                    const BoxConstraints(minHeight: 56),
                                 child: Row(children: [
                                   IconButton(
                                       tooltip: 'Complete ${task.title}',
@@ -72,50 +71,32 @@ class TaskWidgetPreview extends StatelessWidget {
                                           size: 23,
                                           color: green)),
                                   Expanded(
-                                      child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                        Text(task.title,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                                fontSize: 14,
-                                                color: ink,
-                                                fontWeight: FontWeight.w600,
-                                                height: 1.4)),
-                                        const SizedBox(height: 3),
-                                        Text(
-                                            '${task.list} · ${model.pet(task.companionId).name}$due',
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                                fontSize: 11, color: muted))
-                                      ])),
-                                  IconButton(
-                                      tooltip: 'Delete ${task.title}',
-                                      onPressed: () => model.remove(task),
-                                      icon: const Icon(Icons.close_rounded,
-                                          size: 20, color: Color(0xFF8C7869))),
+                                      child: Padding(
+                                          padding: const EdgeInsets.fromLTRB(
+                                              0, 8, 12, 8),
+                                          child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(task.title,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: const TextStyle(
+                                                        fontSize: 14,
+                                                        color: ink)),
+                                                const SizedBox(height: 3),
+                                                Text(task.list,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: const TextStyle(
+                                                        fontSize: 11,
+                                                        color: muted))
+                                              ])))
                                 ]));
                           })),
-              const SizedBox(height: 8),
-              SizedBox(
-                  width: double.infinity,
-                  height: 44,
-                  child: FilledButton.icon(
-                      style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFFE4EBD9),
-                          foregroundColor: green,
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12))),
-                      onPressed: onAdd,
-                      icon: const Icon(Icons.add, size: 19),
-                      label: const Text('Add a task',
-                          style: TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w700)))),
+              const SizedBox(height: 8)
             ]));
       });
 }

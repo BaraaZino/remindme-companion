@@ -247,13 +247,13 @@ void main() {
     expect(tester.takeException(), isNull);
     await closeApp(tester);
   });
-  testWidgets('Widget can add, complete, and remove assigned tasks',
+  testWidgets('Compact widget has header add, group subtitles, and completion',
       (tester) async {
     screen(tester);
     final model = CompanionModel()
       ..loaded = true
       ..tasks = [
-        Task(id: 'finish', title: 'Finish me'),
+        Task(id: 'finish', title: 'Finish me', list: 'Learning'),
         Task(id: 'remove', title: 'Remove me')
       ];
     await tester.pumpWidget(RemindMeApp(model: model));
@@ -264,7 +264,10 @@ void main() {
     await tester.tap(find.text('Home-screen widget'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
-    await tester.tap(find.text('Add a task'));
+    expect(find.text('My tasks'), findsOneWidget);
+    expect(find.text('Learning'), findsOneWidget);
+    expect(find.byTooltip('Delete Remove me'), findsNothing);
+    await tester.tap(find.byTooltip('Add a task'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
     await tester.enterText(find.byType(TextField).first, 'From widget');
@@ -275,11 +278,9 @@ void main() {
     await tester.tap(find.byTooltip('Complete Finish me'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 150));
-    await tester.tap(find.byTooltip('Delete Remove me'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 150));
     expect(model.visibleTasks('Done').single.title, 'Finish me');
-    expect(model.visibleTasks('All tasks').single.title, 'From widget');
+    expect(model.visibleTasks('All tasks').map((t) => t.title),
+        containsAll(['Remove me', 'From widget']));
     expect(tester.takeException(), isNull);
     await closeApp(tester);
   });

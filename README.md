@@ -1,6 +1,6 @@
 # RemindMe Companion
 
-A Flutter Android task app with companions that walk in, stop to deliver a reminder, and then walk off-screen. Each task and app timer can use a different named companion. A resizable Android home-screen widget can add, complete, and remove tasks.
+A Flutter Android task app with companions that walk in, stop to deliver a reminder, and then walk off-screen. Each task and app timer can use a different named companion. A compact Android home-screen widget shows a title and top-right add button, with a completion circle and group subtitle on each row.
 
 ## What you can configure
 
@@ -39,7 +39,7 @@ The ARM64 result is `dist/RemindMe-Flutter-arm64.apk`, suitable for the POCO X7 
 
 Test builds use the existing local development key when available. Keep `.tools/debug.keystore` to install future versions as updates. Keys, SDKs, caches, recordings, and large Flutter APKs are not committed. Test APKs are shared through private GitHub release assets.
 
-After installation, open **Companions → Permissions** and grant floating-pet and notification access. Enable companion visits. Open an individual companion’s settings to customize it, record/import audio, and try a task or timer visit. For real app timers, also grant usage access under **App timers**. Use the **Home-screen widget** button on Tasks to request widget placement or add **RemindMe tasks** from the launcher’s Widgets picker.
+After installation, open **Companions → Permissions** and grant floating-pet and notification access. Enable companion visits. Open an individual companion’s settings to customize it, record/import audio, and try a task or timer visit. For real app timers, also grant usage access under **App timers**. Use the **Home-screen widget** button on Tasks to request widget placement or add **RemindMe tasks** from the launcher’s Widgets picker. Long-press the placed widget and drag the side handles to change width, or the bottom handle to change height. It defaults to three columns rather than four, with a 110dp minimum resize width; the launcher chooses its grid sizes. If an existing widget keeps the old width limit, remove only the widget from the home screen and add it again. Tasks stay in the app. Delete tasks inside the app; widget rows keep only the completion control.
 
 On HyperOS, a hidden/stopped overlay may require per-app pop-up/background-window or battery settings. Menu names vary; Xiaomi documents the extra controls in its [permission guide](https://www.mi.com/global/support/faq/details/KA-497759/).
 
@@ -124,3 +124,7 @@ The Flutter tests cover migration, persistence, task/timer assignments, companio
 For rendered screen images in `.tools/`, run `./scripts/flutterw test tool/render_preview_test.dart`. They are off-screen Flutter renders, not phone screenshots.
 
 A real phone check is still required for microphone hardware, file-provider support, overlay behavior, notification timing, usage-access delivery, and launcher widgets. Test a short recording and an imported clip for both reminder roles, two pets assigned to different tasks/timers, both entrance directions, large text, queued reminders, completing/snoozing, and widget changes. Android battery saving can delay scheduled notifications; enabling visits does not provide exact-alarm guarantees. Start visits again after restarting the phone.
+
+## Compact widget layout (0.3.1)
+
+The actual Android widget is drawn by `app/src/main/res/layout/task_widget.xml` (header and list) and `task_widget_row.xml` (completion circle, title, group). `res/xml/task_widget_info.xml` controls default size and minimum resize dimensions. `TaskWidgetProvider.row()` fills in the task title and existing `list` value, while its completion action still calls `Store.complete()`. This changes presentation and sizing, not the saved task format. The Dart file `task_widget_preview.dart` mirrors the design for the in-app/browser preview. Android resizing is performed by the launcher, not by Flutter.

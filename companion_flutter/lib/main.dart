@@ -398,7 +398,7 @@ class _CompanionHomeState extends State<CompanionHome>
                                   Text(
                                       kIsWeb
                                           ? 'Interactive preview. The real widget lives on your Android home screen.'
-                                          : 'Long-press your home screen, choose Widgets, and add RemindMe tasks.',
+                                          : 'Add RemindMe tasks from your home screen’s Widgets picker. Then long-press the widget and drag its side or bottom handles to resize it. The launcher controls the available sizes.',
                                       style: const TextStyle(
                                           fontSize: 13,
                                           color: muted,

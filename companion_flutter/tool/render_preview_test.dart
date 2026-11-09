@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:remindme_companion/main.dart';
 import 'package:remindme_companion/companion_model.dart';
+import 'package:remindme_companion/task_widget_preview.dart';
 
 void main() {
   testWidgets('Render the actual Flutter screens for design review',
@@ -104,6 +105,24 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
     await save('v03-timers');
+    // Render the widget at several launcher-like widths, including its minimum.
+    for (final width in [340.0, 220.0, 110.0]) {
+      await tester.pumpWidget(MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(fontFamily: 'Nunito'),
+          home: Scaffold(
+              backgroundColor: const Color(0xFFE9E6DE),
+              body: Center(
+                  child: SizedBox(
+                      width: width,
+                      child: RepaintBoundary(
+                          key: key,
+                          child: TaskWidgetPreview(
+                              model: model, onAdd: () {})))))));
+      await tester.pump();
+      await save('v031-widget-${width.toInt()}');
+      expect(tester.takeException(), isNull);
+    }
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

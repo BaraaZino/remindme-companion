@@ -6,7 +6,6 @@ import android.content.*;
 import android.net.Uri;
 import android.os.Build;
 import android.widget.RemoteViews;
-import java.text.DateFormat;
 import java.util.*;
 
 /** A scrollable home-screen task list sharing the app's private task store. */
@@ -26,27 +25,17 @@ public class TaskWidgetProvider extends AppWidgetProvider {
   static RemoteViews row(Context context, Store.Task task) {
     RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.task_widget_row);
     row.setTextViewText(R.id.widget_title, task.title);
-    String detail = task.list + " · " + PetProfile.resolve(context, task.companionId).name;
-    if (task.due > 0)
-      detail +=
-          " · "
-              + DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
-                  .format(new Date(task.due));
-    row.setTextViewText(R.id.widget_detail, detail);
+    row.setTextViewText(R.id.widget_detail, task.list);
     row.setContentDescription(R.id.widget_complete, "Complete " + task.title);
-    row.setContentDescription(R.id.widget_delete, "Delete " + task.title);
     row.setOnClickFillInIntent(
         R.id.widget_complete,
         new Intent().putExtra(TASK_ID, task.id).putExtra(OPERATION, "complete"));
-    row.setOnClickFillInIntent(
-        R.id.widget_delete, new Intent().putExtra(TASK_ID, task.id).putExtra(OPERATION, "delete"));
     return row;
   }
 
   static void update(Context context, AppWidgetManager manager, int id) {
     RemoteViews view = new RemoteViews(context.getPackageName(), R.layout.task_widget);
     List<Store.Task> tasks = pending(context);
-    view.setTextViewText(R.id.widget_count, Integer.toString(tasks.size()));
     view.setEmptyView(R.id.widget_tasks, R.id.widget_empty);
     view.setOnClickPendingIntent(
         R.id.widget_open,

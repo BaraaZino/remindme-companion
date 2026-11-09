@@ -1,7 +1,7 @@
 name: remindme_companion
 description: A gentle task companion with Mochi the pixel cat.
 publish_to: none
-version: 0.3.0+3
+version: 0.3.1+4
 environment:
   sdk: '>=3.6.0 <4.0.0'
 dependencies:
