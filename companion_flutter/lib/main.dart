@@ -7,6 +7,7 @@ import 'app_style.dart';
 import 'companion_editor.dart';
 import 'visit_overlay.dart';
 import 'task_widget_preview.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,12 +21,14 @@ class RemindMeApp extends StatefulWidget {
   State<RemindMeApp> createState() => _RemindMeAppState();
 }
 
-class _RemindMeAppState extends State<RemindMeApp> {
+class _RemindMeAppState extends State<RemindMeApp> with WidgetsBindingObserver {
+  bool foreground = true;
   late final CompanionModel model = widget.model ?? CompanionModel();
   final visits = VisitController();
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (!model.loaded) {
       model.load().then((_) {
         if (mounted) model.loadApps();
@@ -34,7 +37,16 @@ class _RemindMeAppState extends State<RemindMeApp> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final active = state == AppLifecycleState.resumed;
+    if (active == foreground) return;
+    visits.setForeground(active);
+    setState(() => foreground = active);
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     visits.dispose();
     if (widget.model == null) model.dispose();
     super.dispose();
@@ -65,9 +77,8 @@ class _RemindMeAppState extends State<RemindMeApp> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)))),
           dialogTheme: const DialogThemeData(backgroundColor: cream)),
-      builder: (context, child) => Stack(
-          fit: StackFit.expand,
-          children: [child!, if (!isAndroid) VisitOverlay(controller: visits)]),
+      builder: (context, child) =>
+          VisitHost(controller: visits, foreground: foreground, child: child!),
       home: CompanionHome(model: model, visits: visits));
 }
 
@@ -85,21 +96,41 @@ class _CompanionHomeState extends State<CompanionHome>
   int page = 0;
   String filter = 'Today';
   late final Timer reminders;
+  StreamSubscription<dynamic>? nativeVisits;
+  bool foreground = true;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    if (isAndroid) {
+      nativeVisits = const EventChannel('remindme/visits')
+          .receiveBroadcastStream()
+          .listen((raw) {
+        if (!foreground || !model.running || !mounted) return;
+        final event = Map<String, dynamic>.from(raw as Map);
+        Task? task;
+        for (final item in model.tasks) {
+          if (item.id == event['taskId'] && !item.done) task = item;
+        }
+        if (event['taskId'] != null && task == null) return;
+        visit(model.pet(event['petId'] as String?),
+            event['kind'] as String? ?? 'task',
+            text: event['text'] as String?, task: task);
+      }, onError: (_) {});
+    }
     reminders = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (isAndroid || !model.loaded) return;
+      if (isAndroid || !model.loaded || !foreground) return;
       for (final task in model.tasks) {
-        if (!task.done &&
-            !task.reminded &&
-            task.due > 0 &&
-            task.due <= DateTime.now().millisecondsSinceEpoch) {
-          task.reminded = true;
+        final now = DateTime.now().millisecondsSinceEpoch;
+        if (task.nextReminder != null && task.nextReminder! <= now) {
+          task.lastReminderAt = now;
+          task.snoozeUntil = 0;
+          task.reminded = task.due <= now;
           model.save();
-          visit(model.pet(task.companionId), 'task',
-              text: 'A little reminder: ${task.title}', task: task);
+          if (model.running) {
+            visit(model.pet(task.companionId), 'task',
+                text: 'A little reminder: ${task.title}', task: task);
+          }
           break;
         }
       }
@@ -108,12 +139,14 @@ class _CompanionHomeState extends State<CompanionHome>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && isAndroid) model.load();
+    foreground = state == AppLifecycleState.resumed;
+    if (foreground && isAndroid) model.load();
   }
 
   @override
   void dispose() {
     reminders.cancel();
+    nativeVisits?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -122,54 +155,31 @@ class _CompanionHomeState extends State<CompanionHome>
     text ??= kind == 'timer'
         ? 'We’ve been scrolling for a while. A stretch, or one small step?'
         : 'Hi, I’m ${pet.name}. A little step is waiting. Let’s make room for it.';
-    if (isAndroid) {
-      await model.action(
-          'preview', {'profile': pet.toJson(), 'kind': kind, 'text': text});
-      if (mounted && model.error != null) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(model.error!)));
-      }
-    } else {
-      widget.visits.add(VisitRequest(
-          pet: pet.copy(),
-          text: text,
-          kind: kind,
-          taskId: task?.id,
-          onDone: () {
-            if (task != null) {
-              final matches =
-                  model.tasks.where((t) => t.id == task.id && !t.done);
-              if (matches.isNotEmpty) model.toggle(matches.first);
-            }
-          },
-          onSnooze: () {
-            if (task != null) {
-              task.due = DateTime.now()
-                  .add(const Duration(minutes: 10))
-                  .millisecondsSinceEpoch;
-              task.reminded = false;
-              model.upsert(task);
-            }
-          }));
-    }
+    widget.visits.add(VisitRequest(
+        pet: pet.copy(),
+        text: text,
+        kind: kind,
+        taskId: task?.id,
+        onDone: () {
+          if (task != null) {
+            final matches =
+                model.tasks.where((t) => t.id == task.id && !t.done);
+            if (matches.isNotEmpty) model.toggle(matches.first);
+          }
+        },
+        onSnooze: () {
+          if (task != null) model.snooze(task);
+        }));
   }
 
   Future<void> setEnabled(bool enabled) async {
     if (!isAndroid) {
       model.running = enabled;
-      model.changed();
-      return;
-    }
-    if (enabled && !model.overlayAllowed) {
-      await model.action('overlayPermission');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text(
-                'Allow the floating-pet permission, return here, and enable visits.')));
-      }
+      await model.save();
     } else {
       await model.action(enabled ? 'start' : 'stop');
     }
+    if (!enabled) widget.visits.clear();
   }
 
   void editPet(Pet pet, {bool isNew = false}) =>
@@ -180,6 +190,7 @@ class _CompanionHomeState extends State<CompanionHome>
               isNew: isNew,
               onPreview: (p, k) => visit(p, k),
               visits: widget.visits)));
+
   Widget petArt(Pet p, {double size = 62, bool walking = false}) => PixelCat(
       size: size,
       animal: p.animal,
@@ -300,6 +311,11 @@ class _CompanionHomeState extends State<CompanionHome>
         ...tasks.map(taskTile),
       const SizedBox(height: 16),
       OutlinedButton.icon(
+          onPressed: openCalendars,
+          icon: const Icon(Icons.calendar_month_outlined),
+          label: const Text('Connect phone calendar')),
+      const SizedBox(height: 8),
+      OutlinedButton.icon(
           onPressed: openWidget,
           icon: const Icon(Icons.widgets_outlined, size: 18),
           label: const Text('Home-screen widget')),
@@ -353,6 +369,15 @@ class _CompanionHomeState extends State<CompanionHome>
                                 style:
                                     const TextStyle(fontSize: 11, color: muted))
                           ]),
+                          if (task.calendarError.isNotEmpty)
+                            Text(
+                                'Calendar needs attention: ${task.calendarError}',
+                                style: const TextStyle(
+                                    fontSize: 11, color: Colors.red)),
+                          if (task.calendarEventId != 0 &&
+                              task.calendarError.isEmpty)
+                            const Text('Linked to calendar',
+                                style: TextStyle(fontSize: 11, color: green)),
                           const SizedBox(height: 5),
                           Row(children: [
                             petArt(pet, size: 25),
@@ -368,6 +393,36 @@ class _CompanionHomeState extends State<CompanionHome>
                         size: 18, color: muted),
                   ]))),
         ));
+  }
+
+  Future<void> openCalendars() async {
+    await model.connectCalendars();
+    if (!mounted) return;
+    showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+                title: const Text('Phone calendars'),
+                content: SingleChildScrollView(
+                    child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                      Text(model.calendarMessage ?? ''),
+                      const SizedBox(height: 12),
+                      ...model.calendars.map((c) => ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(c['name'] as String? ?? 'Calendar'),
+                          subtitle: Text(c['account'] as String? ?? ''))),
+                      const Text(
+                          'Dated tasks are calendar events, not Microsoft To Do entries. '
+                          'Edits made in the calendar do not update RemindMe. '
+                          'Enable Outlook’s Sync calendars option if its calendar is missing.')
+                    ])),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Got it'))
+                ]));
   }
 
   void openWidget() => Navigator.push(
@@ -415,14 +470,14 @@ class _CompanionHomeState extends State<CompanionHome>
                   style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
               subtitle: Text(
                   model.running
-                      ? 'Ready to visit when a reminder is due.'
-                      : 'Pets stay off-screen until a reminder or test visit.',
+                      ? 'Pets visit while you use RemindMe. Background reminders use notifications.'
+                      : 'Turn on reminder visits inside RemindMe.',
                   style: const TextStyle(fontSize: 12, color: muted)),
               value: model.running,
               onChanged: setEnabled),
           const SizedBox(height: 6),
           const Text(
-              'Walk in, stop and talk, then walk off-screen. Pause all visits here or from the ongoing notification.',
+              'Companions appear only inside this app. They hide and stop speaking when you leave it.',
               style: TextStyle(fontSize: 12, color: muted, height: 1.6)),
         ])),
         ...model.pets.map(companionCard),
@@ -441,14 +496,14 @@ class _CompanionHomeState extends State<CompanionHome>
         if (isAndroid)
           panel(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             sectionTitle('Permissions'),
-            permission('Floating-pet permission', model.overlayAllowed,
-                'overlayPermission'),
             permission('Task notifications', model.notificationsAllowed,
-                'notificationPermission')
+                'notificationPermission'),
+            permission('Precise reminder timing', model.exactAllowed,
+                'exactPermission')
           ]))
         else
           panel(const Text(
-              'Browser preview: visits happen inside this window. On Android, they appear over other apps. Record or import voice clips when your browser allows it.',
+              'Visits stay inside RemindMe on every device. Record or import voice clips when your browser allows it.',
               style: TextStyle(fontSize: 12, color: muted, height: 1.6))),
       ];
   Widget companionCard(Pet pet) {
@@ -759,7 +814,19 @@ class _CompanionHomeState extends State<CompanionHome>
   Future<void> editTask({Task? original, bool quick = false}) async {
     final name = TextEditingController(text: original?.title),
         list = TextEditingController(text: original?.list ?? 'Personal');
+    final taskId =
+        original?.id ?? DateTime.now().microsecondsSinceEpoch.toString();
     String petId = original?.companionId ?? model.defaultCompanion;
+    int dailyDays = original?.dailyDays ?? 3;
+    int calendarId = original?.calendarId ?? 0;
+    final offsets = TextEditingController(
+        text: original == null
+            ? '3, 1'
+            : original.reminderOffsets
+                .where((m) => m > 0)
+                .map((m) =>
+                    (m / 60).toString().replaceFirst(RegExp(r'\.0$'), ''))
+                .join(', '));
     DateTime? due = original == null || original.due == 0
         ? null
         : DateTime.fromMillisecondsSinceEpoch(original.due);
@@ -815,13 +882,13 @@ class _CompanionHomeState extends State<CompanionHome>
                                         Icons.notifications_none_rounded),
                                     title: Text(
                                         due == null
-                                            ? 'Add a reminder'
+                                            ? 'Set deadline and reminders'
                                             : '${MaterialLocalizations.of(context).formatShortDate(due!)} · ${TimeOfDay.fromDateTime(due!).format(context)}',
                                         style: const TextStyle(fontSize: 13)),
                                     trailing: due == null
                                         ? const Icon(Icons.add, size: 18)
                                         : IconButton(
-                                            tooltip: 'Clear reminder',
+                                            tooltip: 'Clear deadline',
                                             onPressed: () =>
                                                 local(() => due = null),
                                             icon: const Icon(Icons.close,
@@ -852,7 +919,96 @@ class _CompanionHomeState extends State<CompanionHome>
                                             time.hour,
                                             time.minute));
                                       }
-                                    })
+                                    }),
+                                if (due != null) ...[
+                                  const SizedBox(height: 12),
+                                  DropdownButtonFormField<int>(
+                                      isExpanded: true,
+                                      initialValue: dailyDays,
+                                      decoration: const InputDecoration(
+                                          labelText: 'Daily reminders start'),
+                                      items: ({
+                                        0,
+                                        1,
+                                        2,
+                                        3,
+                                        5,
+                                        7,
+                                        14,
+                                        30,
+                                        dailyDays
+                                      }.toList()
+                                            ..sort())
+                                          .map((d) => DropdownMenuItem(
+                                              value: d,
+                                              child: Text(d == 0
+                                                  ? 'No daily reminders'
+                                                  : '$d days before')))
+                                          .toList(),
+                                      onChanged: (v) =>
+                                          local(() => dailyDays = v ?? 0)),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                      'Daily reminders use the deadline’s time of day. A reminder is also sent at the deadline.',
+                                      style: TextStyle(fontSize: 12)),
+                                  TextField(
+                                      controller: offsets,
+                                      decoration: const InputDecoration(
+                                          labelText:
+                                              'Extra reminders (hours before)',
+                                          hintText: '3, 1, 0.5',
+                                          helperMaxLines: 2,
+                                          helperText:
+                                              'Separate hours with commas; 0.5 means 30 minutes.')),
+                                  const SizedBox(height: 12),
+                                  OutlinedButton.icon(
+                                      onPressed: () async {
+                                        await model.connectCalendars();
+                                        if (context.mounted) local(() {});
+                                      },
+                                      icon: const Icon(
+                                          Icons.calendar_month_outlined),
+                                      label: const Text('Connect calendars')),
+                                  if (model.calendarMessage != null)
+                                    Text(model.calendarMessage!,
+                                        style: const TextStyle(fontSize: 12)),
+                                  DropdownButtonFormField<int>(
+                                      key: ValueKey(
+                                          'calendar-${model.calendars.length}-$calendarId'),
+                                      initialValue: calendarId,
+                                      decoration: const InputDecoration(
+                                          labelText: 'Put task in calendar'),
+                                      isExpanded: true,
+                                      items: [
+                                        const DropdownMenuItem(
+                                            value: 0,
+                                            child: Text('No calendar')),
+                                        if (calendarId != 0 &&
+                                            !model.calendars.any(
+                                                (c) => c['id'] == calendarId))
+                                          DropdownMenuItem(
+                                              value: calendarId,
+                                              child: const Text(
+                                                  'Previously linked calendar')),
+                                        ...model.calendars.map((c) =>
+                                            DropdownMenuItem(
+                                                value: (c['id'] as num).toInt(),
+                                                child: Text(
+                                                    '${c['name']} · ${c['account']}',
+                                                    overflow:
+                                                        TextOverflow.ellipsis)))
+                                      ],
+                                      onChanged: (v) =>
+                                          local(() => calendarId = v ?? 0)),
+                                  const Text(
+                                      'Saved as a 15-minute calendar event at the deadline. RemindMe handles repeated reminders. Calendar edits do not sync back.',
+                                      style: TextStyle(fontSize: 12)),
+                                  if (original?.calendarError.isNotEmpty ==
+                                      true)
+                                    Text(original!.calendarError,
+                                        style:
+                                            const TextStyle(color: Colors.red))
+                                ]
                               ]
                             ]))),
                     actions: [
@@ -879,23 +1035,56 @@ class _CompanionHomeState extends State<CompanionHome>
                                   error = 'Choose a future reminder time.');
                               return;
                             }
+                            final parsedOffsets = <int>[];
+                            for (final part in offsets.text.split(',')) {
+                              if (part.trim().isEmpty) continue;
+                              final hours = double.tryParse(part.trim());
+                              if (hours == null ||
+                                  !hours.isFinite ||
+                                  hours < 0 ||
+                                  hours > 720 ||
+                                  parsedOffsets.length >= 32) {
+                                local(() => error =
+                                    'Use up to 32 reminder offsets between 0 and 720 hours.');
+                                return;
+                              }
+                              parsedOffsets.add((hours * 60).round());
+                            }
                             await model.upsert(Task(
-                                id: original?.id ??
-                                    DateTime.now()
-                                        .microsecondsSinceEpoch
-                                        .toString(),
+                                id: taskId,
                                 title: name.text.trim(),
                                 list: list.text.trim().isEmpty
                                     ? 'Personal'
                                     : list.text.trim(),
                                 companionId: petId,
                                 due: due?.millisecondsSinceEpoch ?? 0,
+                                dailyDays: due == null ? 0 : dailyDays,
+                                reminderOffsets: due == null
+                                    ? []
+                                    : (parsedOffsets.toSet().toList()..sort()),
+                                calendarId: due == null ? 0 : calendarId,
+                                calendarEventId: original?.calendarEventId ?? 0,
+                                lastReminderAt: original?.lastReminderAt ?? 0,
+                                reminderFrom: original?.reminderFrom ?? 0,
+                                snoozeUntil: original?.snoozeUntil ?? 0,
                                 done: original?.done ?? false,
                                 reminded: original != null &&
                                         (due?.millisecondsSinceEpoch ?? 0) ==
                                             original.due
                                     ? original.reminded
                                     : false));
+                            if (model.error != null) {
+                              local(() => error = model.error);
+                              return;
+                            }
+                            final saved =
+                                model.tasks.where((t) => t.id == taskId);
+                            if (saved.isNotEmpty &&
+                                saved.first.calendarError.isNotEmpty) {
+                              local(() => error =
+                                  'Task saved locally. ${saved.first.calendarError}');
+                              return;
+                            }
                             if (context.mounted) Navigator.pop(context);
                           },
                           child:
@@ -904,5 +1093,6 @@ class _CompanionHomeState extends State<CompanionHome>
     await Future<void>.delayed(const Duration(milliseconds: 350));
     name.dispose();
     list.dispose();
+    offsets.dispose();
   }
 }

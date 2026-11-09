@@ -42,6 +42,15 @@ void main() {
       ..tasks = [
         Task(id: 'read', title: 'Make a little room to read'),
         Task(
+            id: 'project',
+            title: 'Finish the project',
+            due: DateTime.now()
+                .add(const Duration(days: 5))
+                .millisecondsSinceEpoch,
+            dailyDays: 3,
+            reminderOffsets: [180, 60],
+            calendarId: 7),
+        Task(
             id: 'walk',
             title: 'Take a walk, leave the phone',
             list: 'Wellbeing',
@@ -54,6 +63,9 @@ void main() {
             minutes: 20,
             companionId: 'bunny',
             apps: {'demo.instagram', 'demo.youtube'})
+      ]
+      ..calendars = [
+        {'id': 7, 'name': 'Outlook (preview)', 'account': 'Example account'}
       ]
       ..apps = [
         {'name': 'Instagram', 'package': 'demo.instagram'},
@@ -79,6 +91,17 @@ void main() {
     }
 
     await save('v03-tasks');
+    await tester.tap(find.text('All tasks'));
+    await tester.pump();
+    await tester.tap(find.text('Finish the project'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.scrollUntilVisible(find.text('Daily reminders start'), 200,
+        scrollable: find.byType(Scrollable).last);
+    await save('v04-schedule');
+    await tester.tap(find.text('Cancel'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
     await tester.tap(find
         .descendant(
             of: find.byType(NavigationBar), matching: find.text('Companions'))

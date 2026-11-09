@@ -28,6 +28,7 @@ class VoiceTools {
   }
 
   static Future<void> stopPlayback() async {
+    await CompanionModel.channel.invokeMethod('stopSpeech');
     await CompanionModel.channel.invokeMethod('stopClip');
   }
 
@@ -37,6 +38,7 @@ class VoiceTools {
   }
 
   static Future<void> say(Pet pet, String text, String kind) async {
-    if (pet.clip(kind).isNotEmpty) await playClip(pet.clip(kind), pet.volume);
+    await CompanionModel.channel.invokeMethod(
+        'say', {'profile': pet.toJson(), 'text': text, 'kind': kind});
   }
 }

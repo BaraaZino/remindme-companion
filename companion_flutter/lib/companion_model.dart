@@ -169,11 +169,59 @@ class Task {
       this.companionId = 'mochi',
       this.due = 0,
       this.done = false,
-      this.reminded = false});
+      this.reminded = false,
+      this.dailyDays = 0,
+      List<int>? reminderOffsets,
+      this.lastReminderAt = 0,
+      this.reminderFrom = 0,
+      this.snoozeUntil = 0,
+      this.calendarId = 0,
+      this.calendarEventId = 0,
+      this.calendarError = ''})
+      : reminderOffsets = reminderOffsets ?? [];
   final String id;
   String title, list, companionId;
-  int due;
+  int due,
+      dailyDays,
+      lastReminderAt,
+      reminderFrom,
+      snoozeUntil,
+      calendarId,
+      calendarEventId;
+  List<int> reminderOffsets;
+  String calendarError;
   bool done, reminded;
+  List<int> reminderTimes() {
+    if (due <= 0) return [];
+    final deadline = DateTime.fromMillisecondsSinceEpoch(due);
+    final times = <int>{due};
+    for (var day = 1; day <= dailyDays.clamp(0, 30); day++) {
+      times.add(DateTime(
+              deadline.year,
+              deadline.month,
+              deadline.day - day,
+              deadline.hour,
+              deadline.minute,
+              deadline.second,
+              deadline.millisecond)
+          .millisecondsSinceEpoch);
+    }
+    for (final minutes in reminderOffsets) {
+      if (minutes >= 0 && minutes <= 43200) times.add(due - minutes * 60000);
+    }
+    return times.toList()..sort();
+  }
+
+  int? get nextReminder {
+    if (done) return null;
+    final last = reminded && due > lastReminderAt ? due : lastReminderAt;
+    final times =
+        reminderTimes().where((t) => t > last && t >= reminderFrom).toList();
+    if (snoozeUntil > 0) times.add(snoozeUntil);
+    if (times.isEmpty) return null;
+    return (times..sort()).first;
+  }
+
   factory Task.fromJson(Map<String, dynamic> j) => Task(
       id: j['id'] as String,
       title: j['title'] as String,
@@ -181,7 +229,15 @@ class Task {
       companionId: j['companionId'] as String? ?? 'mochi',
       due: (j['due'] as num?)?.toInt() ?? 0,
       done: j['done'] == true,
-      reminded: j['reminded'] == true);
+      reminded: j['reminded'] == true,
+      dailyDays: (j['dailyDays'] as num?)?.toInt() ?? 0,
+      reminderOffsets: List<int>.from(j['reminderOffsets'] as List? ?? []),
+      lastReminderAt: (j['lastReminderAt'] as num?)?.toInt() ?? 0,
+      reminderFrom: (j['reminderFrom'] as num?)?.toInt() ?? 0,
+      snoozeUntil: (j['snoozeUntil'] as num?)?.toInt() ?? 0,
+      calendarId: (j['calendarId'] as num?)?.toInt() ?? 0,
+      calendarEventId: (j['calendarEventId'] as num?)?.toInt() ?? 0,
+      calendarError: j['calendarError'] as String? ?? '');
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
@@ -189,7 +245,15 @@ class Task {
         'companionId': companionId,
         'due': due,
         'done': done,
-        'reminded': reminded
+        'reminded': reminded,
+        'dailyDays': dailyDays,
+        'reminderOffsets': reminderOffsets,
+        'lastReminderAt': lastReminderAt,
+        'reminderFrom': reminderFrom,
+        'snoozeUntil': snoozeUntil,
+        'calendarId': calendarId,
+        'calendarEventId': calendarEventId,
+        'calendarError': calendarError
       };
 }
 
@@ -206,10 +270,13 @@ class CompanionModel extends ChangeNotifier {
       overlayAllowed = false,
       usageAllowed = false,
       notificationsAllowed = false,
+      exactAllowed = false,
       demo = kIsWeb;
   int minutes = 20;
   Set<String> watched = {};
   List<Map<String, String>> apps = [];
+  List<Map<String, dynamic>> calendars = [];
+  String? calendarMessage;
   String? error;
   SharedPreferences? _preferences;
   StreamSubscription<dynamic>? _taskChanges;
@@ -293,6 +360,7 @@ class CompanionModel extends ChangeNotifier {
         }
       }
       demo = state['demo'] as bool? ?? kIsWeb;
+      if (!isAndroid) running = state['visitsEnabled'] == true;
       if (isAndroid) {
         _permissions(state);
         _taskChanges ??= const EventChannel('remindme/tasks')
@@ -317,6 +385,7 @@ class CompanionModel extends ChangeNotifier {
     overlayAllowed = j['overlay'] == true;
     usageAllowed = j['usage'] == true;
     notificationsAllowed = j['notifications'] == true;
+    exactAllowed = j['exact'] == true;
   }
 
   Future<void> refreshPermissions() async {
@@ -343,7 +412,8 @@ class CompanionModel extends ChangeNotifier {
       'nudges': nudges,
       'speech': speech,
       'watched': watched.toList(),
-      'demo': demo
+      'demo': demo,
+      'visitsEnabled': running
     };
     changed();
     try {
@@ -369,6 +439,18 @@ class CompanionModel extends ChangeNotifier {
       task.companionId = defaultCompanion;
     }
     final i = tasks.indexWhere((t) => t.id == task.id);
+    if (!isAndroid) {
+      final old = i < 0 ? null : tasks[i];
+      if (old == null ||
+          old.due != task.due ||
+          old.dailyDays != task.dailyDays ||
+          !listEquals(old.reminderOffsets, task.reminderOffsets)) {
+        task.reminderFrom = DateTime.now().millisecondsSinceEpoch;
+        task.lastReminderAt = 0;
+        task.reminded = false;
+        task.snoozeUntil = 0;
+      }
+    }
     if (i < 0) {
       tasks.add(task);
     } else {
@@ -379,8 +461,48 @@ class CompanionModel extends ChangeNotifier {
 
   Future<void> toggle(Task task) async {
     task.done = !task.done;
-    if (!task.done) task.reminded = false;
+    task.snoozeUntil = 0;
+    if (!task.done) {
+      task.reminded = false;
+      task.reminderFrom = DateTime.now().millisecondsSinceEpoch;
+    }
     await _persistTask('completeTask', {'id': task.id, 'done': task.done});
+  }
+
+  Future<void> snooze(Task task) async {
+    task.snoozeUntil =
+        DateTime.now().add(const Duration(minutes: 10)).millisecondsSinceEpoch;
+    await _persistTask('snoozeTask', task.id);
+  }
+
+  Future<void> connectCalendars() async {
+    if (!isAndroid) {
+      calendarMessage =
+          'Calendar connection is available on your Android phone.';
+      changed();
+      return;
+    }
+    try {
+      final allowed =
+          await channel.invokeMethod<bool>('calendarPermission') ?? false;
+      if (!allowed) {
+        calendars = [];
+        calendarMessage =
+            'Calendar access was not granted. Your tasks are still saved locally.';
+      } else {
+        final rows =
+            await channel.invokeMethod<List<dynamic>>('calendars') ?? [];
+        calendars =
+            rows.map((c) => Map<String, dynamic>.from(c as Map)).toList();
+        calendarMessage = calendars.isEmpty
+            ? 'No writable calendars found. In Outlook, enable Sync calendars for your account, then try again.'
+            : 'Choose a calendar in a task with a deadline. Calendar events link one way from RemindMe; reminders are managed here.';
+      }
+    } catch (e) {
+      calendarMessage =
+          'Could not read phone calendars. Check calendar access and try again.';
+    }
+    changed();
   }
 
   Future<void> remove(Task task) async {
@@ -398,8 +520,16 @@ class CompanionModel extends ChangeNotifier {
       final result = await channel.invokeMethod<List<dynamic>>(method, args);
       if (result != null) tasks = _decodeTasks(result);
       error = null;
-    } catch (_) {
-      error = 'Could not save this task. Please reopen the app and try again.';
+    } catch (failure) {
+      // Restore the native source of truth after an optimistic UI mutation fails.
+      try {
+        final state =
+            await channel.invokeMethod<Map<dynamic, dynamic>>('loadState');
+        if (state != null) tasks = _decodeTasks(state['tasks'] as List? ?? []);
+      } catch (_) {}
+      error = failure is PlatformException
+          ? failure.message
+          : 'Could not save this task. Please reopen the app and try again.';
     }
     changed();
   }

@@ -12,7 +12,23 @@ public final class Store {
   public static class Task {
     public String id = UUID.randomUUID().toString(), title, list = "Personal";
     public String companionId = "mochi";
-    public long due;
+    public long due, lastReminderAt, reminderFrom, snoozeUntil, calendarId, calendarEventId;
+    public int dailyDays;
+    public List<Integer> reminderOffsets = new ArrayList<>();
+    public String calendarError = "";
+
+    public long nextReminder() {
+      if (done) return Long.MAX_VALUE;
+      long next =
+          ReminderPlan.next(
+              due,
+              dailyDays,
+              reminderOffsets,
+              Math.max(lastReminderAt, reminded ? due : 0),
+              reminderFrom);
+      return snoozeUntil > 0 ? Math.min(next, snoozeUntil) : next;
+    }
+
     public boolean done, reminded;
 
     public Task(String t, long d, String l) {
@@ -29,7 +45,15 @@ public final class Store {
           .put("companionId", companionId)
           .put("due", due)
           .put("done", done)
-          .put("reminded", reminded);
+          .put("reminded", reminded)
+          .put("dailyDays", dailyDays)
+          .put("reminderOffsets", new JSONArray(reminderOffsets))
+          .put("lastReminderAt", lastReminderAt)
+          .put("reminderFrom", reminderFrom)
+          .put("snoozeUntil", snoozeUntil)
+          .put("calendarId", calendarId)
+          .put("calendarEventId", calendarEventId)
+          .put("calendarError", calendarError);
     }
   }
 
@@ -44,6 +68,19 @@ public final class Store {
         t.companionId = o.optString("companionId", "mochi");
         t.done = o.optBoolean("done");
         t.reminded = o.optBoolean("reminded");
+        t.dailyDays = Math.max(0, Math.min(30, o.optInt("dailyDays")));
+        JSONArray offsets = o.optJSONArray("reminderOffsets");
+        if (offsets != null)
+          for (int j = 0; j < offsets.length(); j++) {
+            int minutes = offsets.optInt(j, -1);
+            if (minutes >= 0 && minutes <= 43200) t.reminderOffsets.add(minutes);
+          }
+        t.lastReminderAt = o.optLong("lastReminderAt");
+        t.reminderFrom = o.optLong("reminderFrom");
+        t.snoozeUntil = o.optLong("snoozeUntil");
+        t.calendarId = o.optLong("calendarId");
+        t.calendarEventId = o.optLong("calendarEventId");
+        t.calendarError = o.optString("calendarError", "");
         out.add(t);
       }
     } catch (JSONException ignored) {
@@ -69,6 +106,7 @@ public final class Store {
 
   public static synchronized void remove(Context c, String id) {
     ArrayList<Task> a = tasks(c);
+    for (Task t : a) if (t.id.equals(id)) CalendarSync.remove(c, t);
     a.removeIf(t -> t.id.equals(id));
     save(c, a);
     c.getSystemService(android.app.NotificationManager.class).cancel(id.hashCode());
@@ -79,7 +117,12 @@ public final class Store {
     for (Task t : a)
       if (t.id.equals(id)) {
         t.done = done;
-        if (!done) t.reminded = false;
+        t.snoozeUntil = 0;
+        if (!done) {
+          t.reminded = false;
+          t.reminderFrom = System.currentTimeMillis();
+        }
+        CalendarSync.sync(c, t);
       }
     save(c, a);
     if (done) c.getSystemService(android.app.NotificationManager.class).cancel(id.hashCode());
@@ -88,11 +131,33 @@ public final class Store {
   public static synchronized void upsert(Context c, Task task) {
     if (!PetProfile.exists(c, task.companionId)) task.companionId = PetProfile.defaultId(c);
     ArrayList<Task> a = tasks(c);
+    boolean found = false;
     for (Task existing : a)
       if (existing.id.equals(task.id)) {
+        found = true;
         task.done = existing.done;
-        if (task.due == existing.due) task.reminded |= existing.reminded;
+        task.calendarEventId = existing.calendarEventId;
+        if (task.due == existing.due
+            && task.dailyDays == existing.dailyDays
+            && task.reminderOffsets.equals(existing.reminderOffsets)) {
+          task.reminded |= existing.reminded;
+          task.lastReminderAt = existing.lastReminderAt;
+          task.reminderFrom = existing.reminderFrom;
+          task.snoozeUntil = existing.snoozeUntil;
+        } else {
+          task.reminded = false;
+          task.lastReminderAt = 0;
+          task.reminderFrom = System.currentTimeMillis();
+          task.snoozeUntil = 0;
+        }
+        if (task.calendarId != existing.calendarId) {
+          if (task.calendarId != 0 && task.due > 0) CalendarSync.writable(c, task.calendarId);
+          CalendarSync.remove(c, existing);
+          task.calendarEventId = 0;
+        }
       }
+    if (!found) task.reminderFrom = System.currentTimeMillis();
+    CalendarSync.sync(c, task);
     a.removeIf(t -> t.id.equals(task.id));
     a.add(task);
     save(c, a);
@@ -102,8 +167,7 @@ public final class Store {
     ArrayList<Task> a = tasks(c);
     for (Task t : a)
       if (t.id.equals(id)) {
-        t.due = System.currentTimeMillis() + 10 * 60_000;
-        t.reminded = false;
+        t.snoozeUntil = System.currentTimeMillis() + 10 * 60_000;
       }
     save(c, a);
   }
@@ -113,13 +177,12 @@ public final class Store {
     Task match = null;
     long now = System.currentTimeMillis();
     for (Task t : a)
-      if (!t.done
-          && !t.reminded
-          && t.due > 0
-          && t.due <= now
-          && (match == null || t.due < match.due)) match = t;
+      if (t.nextReminder() <= now && (match == null || t.nextReminder() < match.nextReminder()))
+        match = t;
     if (match != null) {
-      match.reminded = true;
+      match.lastReminderAt = now;
+      match.snoozeUntil = 0;
+      match.reminded = match.due <= now;
       save(c, a);
     }
     return match;

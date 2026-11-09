@@ -24,7 +24,7 @@ class VisitRequest {
 class VisitController extends ChangeNotifier {
   VisitRequest? current;
   final Queue<VisitRequest> _queue = Queue();
-  bool suspended = false, _disposed = false;
+  bool suspended = false, _disposed = false, _foreground = true;
   @override
   void dispose() {
     _disposed = true;
@@ -34,7 +34,7 @@ class VisitController extends ChangeNotifier {
   void add(VisitRequest request) {
     if (_disposed) return;
     if (current?.taskId != null && current!.taskId == request.taskId) return;
-    if (current == null && !suspended) {
+    if (current == null && !suspended && _foreground) {
       current = request;
       notifyListeners();
     } else {
@@ -45,7 +45,28 @@ class VisitController extends ChangeNotifier {
   void finish() {
     if (_disposed) return;
     current = null;
-    if (!suspended && _queue.isNotEmpty) current = _queue.removeFirst();
+    if (!suspended && _foreground && _queue.isNotEmpty) {
+      current = _queue.removeFirst();
+    }
+    notifyListeners();
+  }
+
+  void clear() {
+    if (_disposed) return;
+    current = null;
+    _queue.clear();
+    notifyListeners();
+  }
+
+  void setForeground(bool active) {
+    if (_disposed || active == _foreground) return;
+    _foreground = active;
+    if (!active && current != null) {
+      _queue.addFirst(current!);
+      current = null;
+    } else if (active && !suspended && current == null && _queue.isNotEmpty) {
+      current = _queue.removeFirst();
+    }
     notifyListeners();
   }
 
@@ -60,7 +81,7 @@ class VisitController extends ChangeNotifier {
   void resume() {
     if (_disposed) return;
     suspended = false;
-    if (current == null && _queue.isNotEmpty) {
+    if (current == null && _foreground && _queue.isNotEmpty) {
       current = _queue.removeFirst();
       notifyListeners();
     }
@@ -78,7 +99,7 @@ class _VisitOverlayState extends State<VisitOverlay>
     with SingleTickerProviderStateMixin {
   late final AnimationController move = AnimationController(vsync: this);
   VisitRequest? visit;
-  Timer? hold, safety;
+  Timer? hold, safety, fade;
   String phase = 'idle';
   bool left = true, audioDone = true, holdDone = false;
   int token = 0;
@@ -96,6 +117,7 @@ class _VisitOverlayState extends State<VisitOverlay>
     token++;
     hold?.cancel();
     safety?.cancel();
+    fade?.cancel();
     move.stop();
     if (visit?.pet.voiceEnabled == true) {
       VoiceTools.stopPlayback().catchError((_) {});
@@ -178,18 +200,23 @@ class _VisitOverlayState extends State<VisitOverlay>
   }
 
   void exit() {
-    if (visit == null || phase == 'exit') return;
+    if (visit == null || phase == 'exit' || phase == 'fade') return;
     hold?.cancel();
     safety?.cancel();
+    fade?.cancel();
     if (visit!.pet.voiceEnabled) VoiceTools.stopPlayback().catchError((_) {});
     final id = token;
-    setState(() => phase = 'exit');
-    move.duration = Duration(
-        milliseconds: ((end - target).abs() / visit!.pet.speed * 1000)
-            .round()
-            .clamp(400, 10000));
-    move.forward(from: 0).then((_) {
-      if (mounted && id == token) widget.controller.finish();
+    setState(() => phase = 'fade');
+    fade = Timer(const Duration(milliseconds: 200), () {
+      if (!mounted || id != token || visit == null) return;
+      setState(() => phase = 'exit');
+      move.duration = Duration(
+          milliseconds: ((end - target).abs() / visit!.pet.speed * 1000)
+              .round()
+              .clamp(400, 10000));
+      move.forward(from: 0).then((_) {
+        if (mounted && id == token) widget.controller.finish();
+      });
     });
   }
 
@@ -199,6 +226,7 @@ class _VisitOverlayState extends State<VisitOverlay>
     widget.controller.removeListener(sync);
     hold?.cancel();
     safety?.cancel();
+    fade?.cancel();
     move.dispose();
     if (visit?.pet.voiceEnabled == true) {
       VoiceTools.stopPlayback().catchError((_) {});
@@ -220,13 +248,21 @@ class _VisitOverlayState extends State<VisitOverlay>
                   ? target + (end - target) * move.value
                   : target;
           return Stack(clipBehavior: Clip.hardEdge, children: [
-            if (phase == 'talk')
-              Positioned(
-                  left: (x - (math.min(300, width - 24) - p.size) / 2).clamp(
-                      12, math.max(12, width - math.min(300, width - 24) - 12)),
-                  top: y - 8,
-                  child: FractionalTranslation(
-                      translation: const Offset(0, -1), child: buildBubble(p))),
+            Positioned(
+                left: (target - (math.min(300, width - 24) - p.size) / 2).clamp(
+                    12, math.max(12, width - math.min(300, width - 24) - 12)),
+                top: y - 8,
+                child: FractionalTranslation(
+                    translation: const Offset(0, -1),
+                    child: IgnorePointer(
+                        ignoring: phase != 'talk',
+                        child: ExcludeSemantics(
+                            excluding: phase != 'talk',
+                            child: AnimatedOpacity(
+                                duration: const Duration(milliseconds: 180),
+                                curve: Curves.easeInOut,
+                                opacity: phase == 'talk' ? 1 : 0,
+                                child: buildBubble(p)))))),
             Positioned(
                 left: x,
                 top: y,
@@ -236,7 +272,7 @@ class _VisitOverlayState extends State<VisitOverlay>
                         onLongPress: exit,
                         child: PixelCat(
                             size: p.size,
-                            walking: phase != 'talk',
+                            walking: phase == 'enter' || phase == 'exit',
                             talking: phase == 'talk',
                             name: p.name,
                             animal: p.animal,
@@ -312,4 +348,41 @@ class _VisitOverlayState extends State<VisitOverlay>
                             child: const Text('10m later'))
                       ]),
                   ])))));
+}
+
+/// Provides an Overlay ancestor for visit tooltips above every Navigator route.
+class VisitHost extends StatefulWidget {
+  const VisitHost(
+      {super.key,
+      required this.child,
+      required this.controller,
+      required this.foreground});
+  final Widget child;
+  final VisitController controller;
+  final bool foreground;
+  @override
+  State<VisitHost> createState() => _VisitHostState();
+}
+
+class _VisitHostState extends State<VisitHost> {
+  late final OverlayEntry entry = OverlayEntry(
+      builder: (_) => Stack(fit: StackFit.expand, children: [
+            widget.child,
+            if (widget.foreground) VisitOverlay(controller: widget.controller)
+          ]));
+  @override
+  void didUpdateWidget(VisitHost oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    entry.markNeedsBuild();
+  }
+
+  @override
+  void dispose() {
+    entry.remove();
+    entry.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Overlay(initialEntries: [entry]);
 }

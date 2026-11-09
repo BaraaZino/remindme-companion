@@ -36,8 +36,7 @@ public class ReminderReceiver extends BroadcastReceiver {
 
   public static void schedule(Context c) {
     long next = Long.MAX_VALUE;
-    for (Store.Task t : Store.tasks(c))
-      if (!t.done && !t.reminded && t.due > 0) next = Math.min(next, t.due);
+    for (Store.Task t : Store.tasks(c)) next = Math.min(next, t.nextReminder());
     AlarmManager a = c.getSystemService(AlarmManager.class);
     PendingIntent p =
         PendingIntent.getBroadcast(
@@ -46,9 +45,17 @@ public class ReminderReceiver extends BroadcastReceiver {
             new Intent(c, ReminderReceiver.class).setAction("REMIND"),
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     a.cancel(p);
-    if (next != Long.MAX_VALUE)
-      a.setAndAllowWhileIdle(
-          AlarmManager.RTC_WAKEUP, Math.max(next, System.currentTimeMillis() + 1000), p);
+    if (next != Long.MAX_VALUE) {
+      long time = Math.max(next, System.currentTimeMillis() + 1000);
+      try {
+        if (android.os.Build.VERSION.SDK_INT < 31 || a.canScheduleExactAlarms()) {
+          a.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, p);
+          return;
+        }
+      } catch (SecurityException ignored) {
+      }
+      a.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, p);
+    }
   }
 
   @Override

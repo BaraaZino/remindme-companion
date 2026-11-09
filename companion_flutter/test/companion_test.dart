@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:remindme_companion/companion_model.dart';
 import 'package:remindme_companion/main.dart';
 import 'package:remindme_companion/visit_overlay.dart';
+import 'package:remindme_companion/pixel_cat.dart';
 
 Future<void> nav(WidgetTester tester, String title) async {
   await tester.tap(find
@@ -333,6 +334,160 @@ void main() {
     await closeApp(tester);
   });
 
+  test(
+      'Daily and final reminder plan preserves links and snoozes without moving deadline',
+      () async {
+    final due = DateTime(2027, 1, 15, 18).millisecondsSinceEpoch;
+    final task = Task(
+        id: 'plan',
+        title: 'Assignment',
+        due: due,
+        dailyDays: 3,
+        reminderOffsets: [180, 60, 60],
+        calendarId: 7,
+        calendarEventId: 99);
+    expect(task.reminderTimes().length, 6);
+    expect(task.nextReminder, DateTime(2027, 1, 12, 18).millisecondsSinceEpoch);
+    task.lastReminderAt = task.nextReminder!;
+    expect(task.nextReminder, DateTime(2027, 1, 13, 18).millisecondsSinceEpoch);
+    task.reminderFrom = DateTime(2027, 1, 15, 16).millisecondsSinceEpoch;
+    expect(task.nextReminder, DateTime(2027, 1, 15, 17).millisecondsSinceEpoch);
+    final restored = Task.fromJson(task.toJson());
+    expect(restored.calendarId, 7);
+    expect(restored.calendarEventId, 99);
+    expect(restored.nextReminder, task.nextReminder);
+    final model = CompanionModel()..tasks = [task];
+    await model.snooze(task);
+    expect(task.due, due);
+    expect(task.snoozeUntil, greaterThan(0));
+    task.done = true;
+    expect(task.nextReminder, isNull);
+    model.dispose();
+  });
+
+  test('Phone calendars request permission and preserve local tasks on denial',
+      () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    var allowed = true;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(CompanionModel.channel, (call) async {
+      if (call.method == 'calendarPermission') return allowed;
+      if (call.method == 'calendars') {
+        return [
+          {'id': 7, 'name': 'Outlook', 'account': 'Personal'}
+        ];
+      }
+      return null;
+    });
+    final model = CompanionModel()
+      ..tasks = [Task(id: 'safe', title: 'Keep me')];
+    await model.connectCalendars();
+    expect(model.calendars.single['id'], 7);
+    allowed = false;
+    await model.connectCalendars();
+    expect(model.calendarMessage, contains('not granted'));
+    expect(model.tasks.single.title, 'Keep me');
+    model.dispose();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(CompanionModel.channel, null);
+  });
+
+  test('Failed calendar-linked deletion restores the native saved task',
+      () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    final task = Task(
+        id: 'linked',
+        title: 'Keep my calendar task',
+        calendarId: 7,
+        calendarEventId: 99);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(CompanionModel.channel, (call) async {
+      if (call.method == 'deleteTask') {
+        throw PlatformException(
+            code: 'calendar',
+            message: 'Allow calendar access to remove the linked event.');
+      }
+      if (call.method == 'loadState')
+        return {
+          'tasks': [task.toJson()]
+        };
+      return null;
+    });
+    final model = CompanionModel()..tasks = [task];
+    await model.remove(task);
+    expect(model.tasks.single.id, 'linked');
+    expect(model.tasks.single.calendarEventId, 99);
+    expect(model.error, contains('Allow calendar access'));
+    model.dispose();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(CompanionModel.channel, null);
+  });
+
+  testWidgets(
+      'Task editor saves daily reminders, final hours, and selected calendar',
+      (tester) async {
+    screen(tester);
+    tester.view.physicalSize = const Size(320, 740);
+    final task = Task(
+        id: 'planned',
+        title: 'A calendar deadline',
+        due: DateTime.now().add(const Duration(days: 5)).millisecondsSinceEpoch,
+        dailyDays: 3,
+        reminderOffsets: [180, 60]);
+    final model = CompanionModel()
+      ..loaded = true
+      ..tasks = [task]
+      ..calendars = [
+        {'id': 7, 'name': 'Outlook', 'account': 'Personal'}
+      ];
+    await tester.pumpWidget(RemindMeApp(model: model));
+    await tester.pump();
+    await tester.tap(find.text('All tasks'));
+    await tester.pump();
+    await tester.ensureVisible(find.text('A calendar deadline'));
+    await tester.pump();
+    await tester.tap(find.text('A calendar deadline'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    final calendar = find.byKey(const ValueKey('calendar-1-0'));
+    await tester.scrollUntilVisible(calendar, 250,
+        scrollable: find.byType(Scrollable).last);
+    await tester.tap(calendar);
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.tap(find.text('Outlook · Personal').last);
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.tap(find.text('Save task'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(model.tasks.single.calendarId, 7);
+    expect(model.tasks.single.dailyDays, 3);
+    expect(model.tasks.single.reminderOffsets, [60, 180]);
+    expect(tester.takeException(), isNull);
+    await closeApp(tester);
+  });
+
+  testWidgets('Companion visits disappear when RemindMe goes into background',
+      (tester) async {
+    screen(tester);
+    final model = CompanionModel()..loaded = true;
+    await tester.pumpWidget(RemindMeApp(model: model));
+    await tester.pump();
+    await nav(tester, 'Companions');
+    await tester.tap(find.text('Test visit').first);
+    await tester.pump();
+    expect(
+        find.descendant(
+            of: find.byType(VisitOverlay), matching: find.byType(PixelCat)),
+        findsOneWidget);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+    expect(find.byType(VisitOverlay), findsNothing);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(find.byType(VisitOverlay), findsOneWidget);
+    await closeApp(tester);
+  });
+
   testWidgets('Visit enters, stops with a bubble, then fully exits',
       (tester) async {
     screen(tester, size: const Size(400, 800));
@@ -344,10 +499,14 @@ void main() {
         pet: Pet(id: 'cat', size: 64, speed: 160, holdSeconds: 5),
         text: 'One small step'));
     await tester.pump();
+    final pet = find.descendant(
+        of: find.byType(VisitOverlay), matching: find.byType(PixelCat));
+    final entryY = tester.getTopLeft(pet).dy;
     await tester.pump(const Duration(seconds: 2));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
     expect(find.text('One small step'), findsOneWidget);
+    expect(tester.getTopLeft(pet).dy, entryY);
     await tester.pump(const Duration(seconds: 6));
     await tester.pump(const Duration(seconds: 3));
     await tester.pump();
@@ -365,6 +524,8 @@ void main() {
     c.add(one);
     c.add(two);
     c.suspend();
+    c.setForeground(false);
+    c.setForeground(true);
     expect(c.current, isNull);
     c.resume();
     expect(c.current, one);

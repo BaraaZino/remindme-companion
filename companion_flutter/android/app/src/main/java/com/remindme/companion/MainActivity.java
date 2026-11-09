@@ -25,15 +25,36 @@ public class MainActivity extends FlutterActivity {
 
   Map<String, Object> permissions() {
     Map<String, Object> out = new HashMap<>();
-    out.put("running", CompanionService.running);
-    out.put("overlay", Settings.canDrawOverlays(this));
+    out.put("running", Store.prefs(this).getBoolean("visitsEnabled", false));
+    out.put(
+        "exact",
+        Build.VERSION.SDK_INT < 31
+            || getSystemService(AlarmManager.class).canScheduleExactAlarms());
     out.put("usage", hasUsage(this));
     out.put("notifications", getSystemService(NotificationManager.class).areNotificationsEnabled());
     return out;
   }
 
+  @Override
+  protected void onResume() {
+    super.onResume();
+    ReminderReceiver.schedule(this);
+    if (Store.prefs(this).getBoolean("visitsEnabled", false) && !CompanionService.running)
+      startForegroundService(new Intent(this, CompanionService.class));
+  }
+
   private android.content.SharedPreferences.OnSharedPreferenceChangeListener taskListener;
   private VoiceCapture voices;
+  private InAppSpeech speech;
+  private BroadcastReceiver visitReceiver;
+  private MethodChannel.Result calendarPermission;
+
+  @Override
+  protected void onPause() {
+    if (voices != null) voices.stopPlayer();
+    if (speech != null) speech.stop();
+    super.onPause();
+  }
 
   @Override
   protected void onActivityResult(int request, int result, Intent data) {
@@ -45,6 +66,11 @@ public class MainActivity extends FlutterActivity {
   public void onRequestPermissionsResult(int request, String[] permissions, int[] grants) {
     super.onRequestPermissionsResult(request, permissions, grants);
     if (voices != null) voices.permissionResult(request, grants);
+    if (request == 710 && calendarPermission != null) {
+      MethodChannel.Result pending = calendarPermission;
+      calendarPermission = null;
+      pending.success(CalendarSync.allowed(this));
+    }
   }
 
   @Override
@@ -58,16 +84,12 @@ public class MainActivity extends FlutterActivity {
 
   private List<Map<String, Object>> taskSnapshot() {
     List<Map<String, Object>> tasks = new ArrayList<>();
-    for (Store.Task t : Store.tasks(this)) {
-      Map<String, Object> map = new HashMap<>();
-      map.put("id", t.id);
-      map.put("title", t.title);
-      map.put("list", t.list);
-      map.put("companionId", t.companionId);
-      map.put("due", t.due);
-      map.put("done", t.done);
-      map.put("reminded", t.reminded);
-      tasks.add(map);
+    for (Store.Task task : Store.tasks(this)) {
+      try {
+        tasks.add((Map<String, Object>) PetProfile.decode(task.json()));
+      } catch (JSONException e) {
+        throw new IllegalStateException(e);
+      }
     }
     return tasks;
   }
@@ -77,6 +99,12 @@ public class MainActivity extends FlutterActivity {
     if (taskListener != null)
       Store.prefs(this).unregisterOnSharedPreferenceChangeListener(taskListener);
     if (voices != null) voices.dispose();
+    if (speech != null) speech.dispose();
+    if (visitReceiver != null) unregisterReceiver(visitReceiver);
+    if (calendarPermission != null) {
+      calendarPermission.success(false);
+      calendarPermission = null;
+    }
     super.onDestroy();
   }
 
@@ -85,6 +113,45 @@ public class MainActivity extends FlutterActivity {
     super.configureFlutterEngine(engine);
     ReminderReceiver.channels(this);
     voices = new VoiceCapture(this);
+    speech = new InAppSpeech(this);
+    new EventChannel(engine.getDartExecutor().getBinaryMessenger(), "remindme/visits")
+        .setStreamHandler(
+            new EventChannel.StreamHandler() {
+              public void onListen(Object args, EventChannel.EventSink sink) {
+                if (visitReceiver != null) unregisterReceiver(visitReceiver);
+                visitReceiver =
+                    new BroadcastReceiver() {
+                      public void onReceive(Context c, Intent i) {
+                        Map<String, Object> event = new HashMap<>();
+                        String taskId = i.getStringExtra("id");
+                        if (taskId != null) {
+                          for (Store.Task task : Store.tasks(c))
+                            if (task.id.equals(taskId) && !task.done) {
+                              event.put("taskId", task.id);
+                              event.put("petId", task.companionId);
+                              event.put("kind", "task");
+                              event.put("text", "A little reminder: " + task.title);
+                            }
+                        } else {
+                          event.put("petId", i.getStringExtra("petId"));
+                          event.put("kind", "timer");
+                          event.put("text", i.getStringExtra("text"));
+                        }
+                        if (!event.isEmpty()) sink.success(event);
+                      }
+                    };
+                IntentFilter filter = new IntentFilter("com.remindme.companion.DUE");
+                filter.addAction("com.remindme.companion.VISIT");
+                if (Build.VERSION.SDK_INT >= 33)
+                  registerReceiver(visitReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+                else registerReceiver(visitReceiver, filter);
+              }
+
+              public void onCancel(Object args) {
+                if (visitReceiver != null) unregisterReceiver(visitReceiver);
+                visitReceiver = null;
+              }
+            });
     new EventChannel(engine.getDartExecutor().getBinaryMessenger(), "remindme/tasks")
         .setStreamHandler(
             new EventChannel.StreamHandler() {
@@ -119,19 +186,7 @@ public class MainActivity extends FlutterActivity {
                   case "loadState":
                     {
                       Map<String, Object> state = permissions();
-                      List<Map<String, Object>> tasks = new ArrayList<>();
-                      for (Store.Task t : Store.tasks(this)) {
-                        Map<String, Object> task = new HashMap<>();
-                        task.put("id", t.id);
-                        task.put("title", t.title);
-                        task.put("list", t.list);
-                        task.put("companionId", t.companionId);
-                        task.put("due", t.due);
-                        task.put("done", t.done);
-                        task.put("reminded", t.reminded);
-                        tasks.add(task);
-                      }
-                      state.put("tasks", tasks);
+                      state.put("tasks", taskSnapshot());
                       state.put("companions", PetProfile.decode(PetProfile.companions(this)));
                       state.put("defaultCompanion", PetProfile.defaultId(this));
                       state.put("timers", PetProfile.decode(PetProfile.timerJson(this)));
@@ -199,6 +254,16 @@ public class MainActivity extends FlutterActivity {
                               ? (String) map.get("companionId")
                               : PetProfile.defaultId(this);
                       t.reminded = Boolean.TRUE.equals(map.get("reminded"));
+                      if (map.get("dailyDays") instanceof Number)
+                        t.dailyDays =
+                            Math.max(0, Math.min(30, ((Number) map.get("dailyDays")).intValue()));
+                      if (map.get("calendarId") instanceof Number)
+                        t.calendarId = ((Number) map.get("calendarId")).longValue();
+                      if (map.get("reminderOffsets") instanceof List)
+                        for (Object offset : (List<?>) map.get("reminderOffsets")) {
+                          int value = ((Number) offset).intValue();
+                          if (value >= 0 && value <= 43200) t.reminderOffsets.add(value);
+                        }
                       Store.upsert(this, t);
                       result.success(taskSnapshot());
                       break;
@@ -233,11 +298,12 @@ public class MainActivity extends FlutterActivity {
                       result.success(null);
                       break;
                     }
-                  case "overlayPermission":
-                    startActivity(
-                        new Intent(
-                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                            Uri.parse("package:" + getPackageName())));
+                  case "exactPermission":
+                    if (Build.VERSION.SDK_INT >= 31)
+                      startActivity(
+                          new Intent(
+                              Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                              Uri.parse("package:" + getPackageName())));
                     result.success(null);
                     break;
                   case "usagePermission":
@@ -256,45 +322,44 @@ public class MainActivity extends FlutterActivity {
                     result.success(null);
                     break;
                   case "start":
-                    if (!Settings.canDrawOverlays(this)) {
-                      result.error(
-                          "overlay",
-                          "Allow the floating pet first, then return and tap Wake Mochi.",
-                          null);
-                      break;
-                    }
+                    Store.prefs(this).edit().putBoolean("visitsEnabled", true).apply();
                     startForegroundService(new Intent(this, CompanionService.class));
-                    new Handler(getMainLooper()).postDelayed(() -> result.success(null), 300);
+                    result.success(null);
                     break;
                   case "stop":
+                    Store.prefs(this).edit().putBoolean("visitsEnabled", false).apply();
                     stopService(new Intent(this, CompanionService.class));
-                    new Handler(getMainLooper()).postDelayed(() -> result.success(null), 200);
+                    if (speech != null) speech.stop();
+                    result.success(null);
                     break;
-                  case "preview":
-                    {
-                      if (!Settings.canDrawOverlays(this)) {
-                        result.error(
-                            "overlay",
-                            "Allow the floating-pet permission in Companions first, then try the"
-                                + " visit again.",
-                            null);
-                        break;
-                      }
-                      Intent preview =
-                          new Intent(this, CompanionService.class).setAction("PREVIEW");
-                      if (call.arguments instanceof Map) {
-                        Map<?, ?> args = (Map<?, ?>) call.arguments;
-                        if (args.get("profile") instanceof Map)
-                          preview.putExtra(
-                              "profile",
-                              new JSONObject((Map<?, ?>) args.get("profile")).toString());
-                        preview.putExtra("kind", (String) args.get("kind"));
-                        preview.putExtra("text", (String) args.get("text"));
-                      }
-                      startForegroundService(preview);
-                      new Handler(getMainLooper()).postDelayed(() -> result.success(null), 250);
-                      break;
+                  case "say":
+                    speech.say((Map<?, ?>) call.arguments, result);
+                    break;
+                  case "stopSpeech":
+                    speech.stop();
+                    result.success(null);
+                    break;
+                  case "snoozeTask":
+                    Store.snooze(this, (String) call.arguments);
+                    result.success(taskSnapshot());
+                    break;
+                  case "calendarPermission":
+                    if (CalendarSync.allowed(this)) result.success(true);
+                    else if (calendarPermission != null)
+                      result.error("busy", "Calendar permission is already being requested.", null);
+                    else {
+                      calendarPermission = result;
+                      requestPermissions(
+                          new String[] {
+                            android.Manifest.permission.READ_CALENDAR,
+                            android.Manifest.permission.WRITE_CALENDAR
+                          },
+                          710);
                     }
+                    break;
+                  case "calendars":
+                    result.success(CalendarSync.calendars(this));
+                    break;
                   case "apps":
                     {
                       List<ResolveInfo> found =
