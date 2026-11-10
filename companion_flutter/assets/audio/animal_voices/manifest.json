@@ -1,0 +1,1507 @@
+{
+  "schema": 1,
+  "description": "33 stylized voice sets, 3 variations per set. Pitch/timing edits are not separate recordings of individual animals.",
+  "licenses": {
+    "CC0-1.0": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "CC-BY-3.0": "https://creativecommons.org/licenses/by/3.0/"
+  },
+  "sources": {
+    "cat": {
+      "title": "Cat SFX",
+      "attribution": "SFX by Dan Knoflicek",
+      "license": "CC-BY-3.0",
+      "page": "https://opengameart.org/content/cat-sfx",
+      "downloads": [
+        "https://opengameart.org/sites/default/files/Cat%201.wav",
+        "https://opengameart.org/sites/default/files/Cat%202.wav",
+        "https://opengameart.org/sites/default/files/Cat%203.wav"
+      ],
+      "files": [
+        {
+          "name": "cat1.wav",
+          "sha256": "5c2f2ca3c152602535cba030334c589131d5dae1aa649da135b1bde2fd919a32"
+        },
+        {
+          "name": "cat2.wav",
+          "sha256": "8991405bc8bd6142ac40807da3a3bffaab9a6dc513f3b54f4c2375b4a5481a01"
+        },
+        {
+          "name": "cat3.wav",
+          "sha256": "571c53973e889350cd2685ca1a36cc06dfb8038e83d21f23cc22674e09b7a13c"
+        }
+      ],
+      "note": "Recorded sound effects"
+    },
+    "dog": {
+      "title": "Dog sounds",
+      "attribution": "pauliuw",
+      "license": "CC0-1.0",
+      "page": "https://opengameart.org/content/dog-sounds",
+      "downloads": [
+        "https://opengameart.org/sites/default/files/dog.7z"
+      ],
+      "files": [
+        {
+          "name": "dog/Dog/Dog Bark 1.wav",
+          "sha256": "0b8e8c9c8f1bea9eb93e6969cbdd7d5baa26352d5e2349913d4ac9a7b765cb8a"
+        },
+        {
+          "name": "dog/Dog/Dog Bark 2.wav",
+          "sha256": "7fa8fdcab7c2b7468d9838dd9d4c82b0cd9b7c7575f2a697b269bb083ac6f7e6"
+        },
+        {
+          "name": "dog/Dog/Dog Bark 3.wav",
+          "sha256": "cdcec765185068bed96752bc21a6d26921962887fbff104c2576de59c52ddf13"
+        }
+      ],
+      "note": "Recorded sound effects"
+    },
+    "bunny": {
+      "title": "Rabbit Eating",
+      "attribution": "Voltiment555",
+      "license": "CC0-1.0",
+      "page": "https://opengameart.org/content/rabbit-eating",
+      "downloads": [
+        "https://opengameart.org/sites/default/files/RabbitEating.wav"
+      ],
+      "files": [
+        {
+          "name": "rabbit.wav",
+          "sha256": "f6ccbfdde9880fb33df0ba28356f34f5e45e380ad15d98661b42be4213d3b49a"
+        }
+      ],
+      "note": "Rabbit eating/rustles, not vocalizations"
+    },
+    "penguin": {
+      "title": "Penguin SFX",
+      "attribution": "Wolfgang Wozniak",
+      "license": "CC-BY-3.0",
+      "page": "https://opengameart.org/content/penguin-sfx",
+      "downloads": [
+        "https://opengameart.org/sites/default/files/Penguin_sfx.zip"
+      ],
+      "files": [
+        {
+          "name": "penguin/Penguin/penguin_call_ 01.wav",
+          "sha256": "0eaf48004ac0b6be3f1edb0bb64ddb19932e82d4c09dff5158c4600d48150bca"
+        },
+        {
+          "name": "penguin/Penguin/penguin_call_ 02.wav",
+          "sha256": "4ea19fea82be04e9404b069f124994da2581569e6d772b3aa8c0db11353b3b19"
+        },
+        {
+          "name": "penguin/Penguin/penguin_call_ 03.wav",
+          "sha256": "b62f62240cbcc904dbf33bbd678d49ef876294033eafa2c3ecafea0c2b6cb01b"
+        }
+      ],
+      "note": "Recorded sound effects"
+    },
+    "fox": {
+      "title": "Stylized fox sound",
+      "attribution": "SFXMint",
+      "license": "CC0-1.0",
+      "page": "https://sfxmint.com/sounds/fox-09",
+      "downloads": [
+        "https://sfxmint.com/dl/fox-09.mp3"
+      ],
+      "files": [
+        {
+          "name": "fox.mp3",
+          "sha256": "99fe009af438e0e2160bbf337e9c1f2ff9a3c9dd0509648bdc9e22d65786005d"
+        }
+      ],
+      "note": "AI-generated stylized animal sound"
+    },
+    "panda": {
+      "title": "Stylized panda sound",
+      "attribution": "SFXMint",
+      "license": "CC0-1.0",
+      "page": "https://sfxmint.com/sounds/panda-09",
+      "downloads": [
+        "https://sfxmint.com/dl/panda-09.mp3"
+      ],
+      "files": [
+        {
+          "name": "panda.mp3",
+          "sha256": "02142883b83ff61f528d6cfb50f48136d422627d099e918eb145e8b96b0af38a"
+        }
+      ],
+      "note": "AI-generated stylized animal sound"
+    },
+    "bear": {
+      "title": "Stylized bear sound",
+      "attribution": "SFXMint",
+      "license": "CC0-1.0",
+      "page": "https://sfxmint.com/sounds/bear-growl-01",
+      "downloads": [
+        "https://sfxmint.com/dl/bear-growl-01.mp3"
+      ],
+      "files": [
+        {
+          "name": "bear.mp3",
+          "sha256": "b5a26b6f90a42fa49d7929828105651127e1dda67d69cf207b396ba98f05b2ec"
+        }
+      ],
+      "note": "AI-generated stylized animal sound"
+    },
+    "frog": {
+      "title": "Stylized frog sound",
+      "attribution": "SFXMint",
+      "license": "CC0-1.0",
+      "page": "https://sfxmint.com/sounds/animal-frog-02",
+      "downloads": [
+        "https://sfxmint.com/dl/animal-frog-02.mp3"
+      ],
+      "files": [
+        {
+          "name": "frog.mp3",
+          "sha256": "41102820e1650a31af2ca1066b0dc9a9c621ec0c43b086bbc5c357f74003d62f"
+        }
+      ],
+      "note": "AI-generated stylized animal sound"
+    },
+    "owl": {
+      "title": "Stylized owl sound",
+      "attribution": "SFXMint",
+      "license": "CC0-1.0",
+      "page": "https://sfxmint.com/sounds/animal-owl-02",
+      "downloads": [
+        "https://sfxmint.com/dl/animal-owl-02.mp3"
+      ],
+      "files": [
+        {
+          "name": "owl.mp3",
+          "sha256": "8a8e5e9c122844cb2e2bb31db98f7bfe3cf2223a333773e6fac2b52c4b6540c0"
+        }
+      ],
+      "note": "AI-generated stylized animal sound"
+    },
+    "turtle": {
+      "title": "Original cartoon turtle chirps",
+      "attribution": "RemindMe project",
+      "license": "CC0-1.0",
+      "page": "Generated by scripts/build_animal_voices.py",
+      "downloads": [],
+      "files": [
+        {
+          "name": "turtle.wav",
+          "sha256": "43fefd69569c829013d120827b2d01181bdc076d988abfb7d391f993c4605f99"
+        }
+      ],
+      "note": "Original synthesized character sounds, not real turtle calls"
+    },
+    "monkey": {
+      "title": "Monkey Sounds",
+      "attribution": "AntumDeluge",
+      "license": "CC0-1.0",
+      "page": "https://opengameart.org/content/monkey-sounds",
+      "downloads": [
+        "https://opengameart.org/sites/default/files/monkey-sounds_0.zip"
+      ],
+      "files": [
+        {
+          "name": "monkey-cc0/monkey-1.wav",
+          "sha256": "5679a4b2c3e666c15c595861d558498df11d31992ff06b298f1ce2a618a92ad1"
+        },
+        {
+          "name": "monkey-cc0/monkey-2.wav",
+          "sha256": "6ec8cbc790ac4211f139297c785e9c3ef9e4352da0d129d0389f4efa9bf780fd"
+        },
+        {
+          "name": "monkey-cc0/monkey-3.wav",
+          "sha256": "4f0077c70e209fb8516ca325cc7478f65b4323f0d21002c28b73561fb08c3fe4"
+        }
+      ],
+      "note": "Performed monkey imitations by AntumDeluge"
+    }
+  },
+  "clips": [
+    {
+      "file": "cat_soft_1.mp3",
+      "animal": "cat",
+      "preset": "soft",
+      "variant": 1,
+      "source": "cat1.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "2a462ed778e128247746959b0e2f2df08b2423d60d1b69339fb69c2f07188eaa"
+    },
+    {
+      "file": "cat_soft_2.mp3",
+      "animal": "cat",
+      "preset": "soft",
+      "variant": 2,
+      "source": "cat2.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "8031f011abcb1ddd6985b7726a2d260d8eb30d402a981f3a5de3c464bbb8d29a"
+    },
+    {
+      "file": "cat_soft_3.mp3",
+      "animal": "cat",
+      "preset": "soft",
+      "variant": 3,
+      "source": "cat3.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "04509025350ac169e1aa6ad1368dfd123dfbded6a940bc35f16562304baaeabd"
+    },
+    {
+      "file": "cat_bright_1.mp3",
+      "animal": "cat",
+      "preset": "bright",
+      "variant": 1,
+      "source": "cat1.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "dcd14ada8ca9647f914cb9bd9f0dcf7df4b900af5ed97454fa02bdd3b4a6f66d"
+    },
+    {
+      "file": "cat_bright_2.mp3",
+      "animal": "cat",
+      "preset": "bright",
+      "variant": 2,
+      "source": "cat2.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "385fb4f6ba81810ca190cb80193f05260218a0aed27613632666309fa5084a3d"
+    },
+    {
+      "file": "cat_bright_3.mp3",
+      "animal": "cat",
+      "preset": "bright",
+      "variant": 3,
+      "source": "cat3.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "2b792cec064ad8700feb0eafdccb0344b971050329fe97e6000c7dbc107fb749"
+    },
+    {
+      "file": "cat_deep_1.mp3",
+      "animal": "cat",
+      "preset": "deep",
+      "variant": 1,
+      "source": "cat1.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "1124d85865b08fb49dd4a414a61fed0a529f96d29780f621ecaa591b0f121a09"
+    },
+    {
+      "file": "cat_deep_2.mp3",
+      "animal": "cat",
+      "preset": "deep",
+      "variant": 2,
+      "source": "cat2.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "24c340fde8d9e9a7ba9c9acf6d177234a8489ccd323da5d1f92e58e09dbf1f17"
+    },
+    {
+      "file": "cat_deep_3.mp3",
+      "animal": "cat",
+      "preset": "deep",
+      "variant": 3,
+      "source": "cat3.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "bc772ce6a94b75f3dd564530da733b4cbf777adbd4d3b7e8356109fc79ffae8e"
+    },
+    {
+      "file": "dog_soft_1.mp3",
+      "animal": "dog",
+      "preset": "soft",
+      "variant": 1,
+      "source": "dog/Dog/Dog Bark 1.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "919a11b1da05811b91a3a0ca588f8a6563326e39142e3027bf0c1e8db27d933f"
+    },
+    {
+      "file": "dog_soft_2.mp3",
+      "animal": "dog",
+      "preset": "soft",
+      "variant": 2,
+      "source": "dog/Dog/Dog Bark 2.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "eadf63970a1e5ead73c1e003f7c4fc7d6e561f559b89984ba6975063d71def79"
+    },
+    {
+      "file": "dog_soft_3.mp3",
+      "animal": "dog",
+      "preset": "soft",
+      "variant": 3,
+      "source": "dog/Dog/Dog Bark 3.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "404ec64067ddd33d99f4e8cb818a19b8cf5053642fb78c2bf116137941a70841"
+    },
+    {
+      "file": "dog_bright_1.mp3",
+      "animal": "dog",
+      "preset": "bright",
+      "variant": 1,
+      "source": "dog/Dog/Dog Bark 1.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "88123c80e13f27b08a532923b895cc47227b98b32a2b453d120b54088049ddba"
+    },
+    {
+      "file": "dog_bright_2.mp3",
+      "animal": "dog",
+      "preset": "bright",
+      "variant": 2,
+      "source": "dog/Dog/Dog Bark 2.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "0f70d935aece963374e5606fc15cdf9f8fc79716bd229404c076e6f127fef56c"
+    },
+    {
+      "file": "dog_bright_3.mp3",
+      "animal": "dog",
+      "preset": "bright",
+      "variant": 3,
+      "source": "dog/Dog/Dog Bark 3.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "f51ca111af1d3037a31502c99763f71606cfd0d7e017004c3b4f43bd6b95b457"
+    },
+    {
+      "file": "dog_deep_1.mp3",
+      "animal": "dog",
+      "preset": "deep",
+      "variant": 1,
+      "source": "dog/Dog/Dog Bark 1.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "88ce21ce72bed610bc1d0f6a79ff67cad9a6921fcdb78953a5f3ac06224e3f78"
+    },
+    {
+      "file": "dog_deep_2.mp3",
+      "animal": "dog",
+      "preset": "deep",
+      "variant": 2,
+      "source": "dog/Dog/Dog Bark 2.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "dcab00edda32754ec5869979b9a8f0c7ab0d0c72ff8f62046e92ee2a1426bb53"
+    },
+    {
+      "file": "dog_deep_3.mp3",
+      "animal": "dog",
+      "preset": "deep",
+      "variant": 3,
+      "source": "dog/Dog/Dog Bark 3.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "d4a2c677c7b192db658a46e59be9974b84c871a056c89e3a55860468e3fd8941"
+    },
+    {
+      "file": "bunny_soft_1.mp3",
+      "animal": "bunny",
+      "preset": "soft",
+      "variant": 1,
+      "source": "rabbit.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "3235da6c3ea98019c4a84d286b0859c99a0cf599c4103bbc016077d6c31254b4"
+    },
+    {
+      "file": "bunny_soft_2.mp3",
+      "animal": "bunny",
+      "preset": "soft",
+      "variant": 2,
+      "source": "rabbit.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 2,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "c53191b86883ecace84ed6c4d5b95c3921b28630a1c6865f459778a92910557f"
+    },
+    {
+      "file": "bunny_soft_3.mp3",
+      "animal": "bunny",
+      "preset": "soft",
+      "variant": 3,
+      "source": "rabbit.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 4,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "af555ae97f3bac9238f1881499de5c460d7fd7a131d40a178b8b979bd5a14185"
+    },
+    {
+      "file": "bunny_bright_1.mp3",
+      "animal": "bunny",
+      "preset": "bright",
+      "variant": 1,
+      "source": "rabbit.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "e3c9840adf4cb7b4c12aee9175723be6dc6e6257a30fdb640c607e53f06bf9bd"
+    },
+    {
+      "file": "bunny_bright_2.mp3",
+      "animal": "bunny",
+      "preset": "bright",
+      "variant": 2,
+      "source": "rabbit.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 2,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "8726dc6872eadb55a6ed5ef1c9522353f4652b5ab0ccfee13ad29d68533d136c"
+    },
+    {
+      "file": "bunny_bright_3.mp3",
+      "animal": "bunny",
+      "preset": "bright",
+      "variant": 3,
+      "source": "rabbit.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 4,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "ebaf6c12a6c51bd9b594a45f8b0f345b95c20f004a0e0e54e5ac11f169f63bab"
+    },
+    {
+      "file": "bunny_deep_1.mp3",
+      "animal": "bunny",
+      "preset": "deep",
+      "variant": 1,
+      "source": "rabbit.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "4f54f1c878ea755ed9ece5f82cca01f87a1995abf3da9b5ba59ae1a39c632c45"
+    },
+    {
+      "file": "bunny_deep_2.mp3",
+      "animal": "bunny",
+      "preset": "deep",
+      "variant": 2,
+      "source": "rabbit.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 2,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "bbf73a520cacfb5a652038def5a042c675f1a56fdbd23040cac0c999a08c24b9"
+    },
+    {
+      "file": "bunny_deep_3.mp3",
+      "animal": "bunny",
+      "preset": "deep",
+      "variant": 3,
+      "source": "rabbit.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 4,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "16af35bf49e5f531f9a507036259120b63f25efee72f5b57ba861c591f2419d0"
+    },
+    {
+      "file": "penguin_soft_1.mp3",
+      "animal": "penguin",
+      "preset": "soft",
+      "variant": 1,
+      "source": "penguin/Penguin/penguin_call_ 01.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "5d1ab32365827a76805903f18fb0198798306c252c55349c0c9269dc9f35002f"
+    },
+    {
+      "file": "penguin_soft_2.mp3",
+      "animal": "penguin",
+      "preset": "soft",
+      "variant": 2,
+      "source": "penguin/Penguin/penguin_call_ 02.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "efa6c3342643f032f8d6608bcd34df998b63d1c338a90d5a01f008baf5b242a0"
+    },
+    {
+      "file": "penguin_soft_3.mp3",
+      "animal": "penguin",
+      "preset": "soft",
+      "variant": 3,
+      "source": "penguin/Penguin/penguin_call_ 03.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "d1f939c22cb7d38082bfa4e162fc5462f26463878213889d48e1f7d8d7c14287"
+    },
+    {
+      "file": "penguin_bright_1.mp3",
+      "animal": "penguin",
+      "preset": "bright",
+      "variant": 1,
+      "source": "penguin/Penguin/penguin_call_ 01.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "fe4b207cfb0c7b97ff0acc1119eee68238c1bdc761d530907d6f3ce9982211e5"
+    },
+    {
+      "file": "penguin_bright_2.mp3",
+      "animal": "penguin",
+      "preset": "bright",
+      "variant": 2,
+      "source": "penguin/Penguin/penguin_call_ 02.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "7bc9b8bdea97cef58e22cdc24656c6961e78485daf7a614538b6e0894c74aa02"
+    },
+    {
+      "file": "penguin_bright_3.mp3",
+      "animal": "penguin",
+      "preset": "bright",
+      "variant": 3,
+      "source": "penguin/Penguin/penguin_call_ 03.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "8ea9d08d655ac5b0469ea2dbc5da7bcec2353fd867cc66384f49d6fe3742e027"
+    },
+    {
+      "file": "penguin_deep_1.mp3",
+      "animal": "penguin",
+      "preset": "deep",
+      "variant": 1,
+      "source": "penguin/Penguin/penguin_call_ 01.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "6fd6e4f3e4a8d32ddf94897be56196bddb81a91ec3f445537dd40dcae527640f"
+    },
+    {
+      "file": "penguin_deep_2.mp3",
+      "animal": "penguin",
+      "preset": "deep",
+      "variant": 2,
+      "source": "penguin/Penguin/penguin_call_ 02.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "9df1a9f01e31ca485864795d3e629f6d6bf204100e40653cf407f7947f79403c"
+    },
+    {
+      "file": "penguin_deep_3.mp3",
+      "animal": "penguin",
+      "preset": "deep",
+      "variant": 3,
+      "source": "penguin/Penguin/penguin_call_ 03.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "c6fa205451e5e368185e0d7d81c0e26ba6a64548415864613abf75fc8f900982"
+    },
+    {
+      "file": "fox_soft_1.mp3",
+      "animal": "fox",
+      "preset": "soft",
+      "variant": 1,
+      "source": "fox.mp3",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "cf91b6ff593fe0847600d59b7273d9b17c210edc67c5bcafb312c6097b8e88a5"
+    },
+    {
+      "file": "fox_soft_2.mp3",
+      "animal": "fox",
+      "preset": "soft",
+      "variant": 2,
+      "source": "fox.mp3",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "0c610bc17199b7e6206dbb3e14582c0e74a6278a2410d465a21d3d650aae7375"
+    },
+    {
+      "file": "fox_soft_3.mp3",
+      "animal": "fox",
+      "preset": "soft",
+      "variant": 3,
+      "source": "fox.mp3",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "03c801018c934747e8e4e4e15e91febe5fe95046052993914c419c81af2b3cae"
+    },
+    {
+      "file": "fox_bright_1.mp3",
+      "animal": "fox",
+      "preset": "bright",
+      "variant": 1,
+      "source": "fox.mp3",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "f42153c33ada1775a36ac52c4def6fa6a698c5fd907600bc6897205f6cf7c2e9"
+    },
+    {
+      "file": "fox_bright_2.mp3",
+      "animal": "fox",
+      "preset": "bright",
+      "variant": 2,
+      "source": "fox.mp3",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "e59d8daad081375c18835f293297545149f7924b554a3607e77f39ba8e01f917"
+    },
+    {
+      "file": "fox_bright_3.mp3",
+      "animal": "fox",
+      "preset": "bright",
+      "variant": 3,
+      "source": "fox.mp3",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "420efd6cf8cb789a8b68395a708c36c48f19e9cd3c3e6de9eb9aaddfbc57ee90"
+    },
+    {
+      "file": "fox_deep_1.mp3",
+      "animal": "fox",
+      "preset": "deep",
+      "variant": 1,
+      "source": "fox.mp3",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "3d9bd67a2cf3e13855eb8c87693ae5a6fd3de7b8488fc1dd5a7d35bab37d97d5"
+    },
+    {
+      "file": "fox_deep_2.mp3",
+      "animal": "fox",
+      "preset": "deep",
+      "variant": 2,
+      "source": "fox.mp3",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "99e07cbe19495fd11588d5811a662bf9e6cad8925cd00a78401e3333b645ea08"
+    },
+    {
+      "file": "fox_deep_3.mp3",
+      "animal": "fox",
+      "preset": "deep",
+      "variant": 3,
+      "source": "fox.mp3",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "cd40bb7a4f66e269fee88adb1e7853eee82d87c8ec97753f4f18abe4faf9e61c"
+    },
+    {
+      "file": "panda_soft_1.mp3",
+      "animal": "panda",
+      "preset": "soft",
+      "variant": 1,
+      "source": "panda.mp3",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "07239d6057e39207ef8fc55a45427e3ff0b87a40202c45f6d4652abfb1207243"
+    },
+    {
+      "file": "panda_soft_2.mp3",
+      "animal": "panda",
+      "preset": "soft",
+      "variant": 2,
+      "source": "panda.mp3",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "6b777bca3259e7a58308bee157670ac9c2d215fb315a6130546dff959d61a62e"
+    },
+    {
+      "file": "panda_soft_3.mp3",
+      "animal": "panda",
+      "preset": "soft",
+      "variant": 3,
+      "source": "panda.mp3",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "b0d80cdf6579296bbb8f9a3340302a187568c4c830065fe51450c74fbd70993d"
+    },
+    {
+      "file": "panda_bright_1.mp3",
+      "animal": "panda",
+      "preset": "bright",
+      "variant": 1,
+      "source": "panda.mp3",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "d3d1d20e6d14658918cec70ee7b8f18e7e9692593d3c32bdc7ad1c8cdb183921"
+    },
+    {
+      "file": "panda_bright_2.mp3",
+      "animal": "panda",
+      "preset": "bright",
+      "variant": 2,
+      "source": "panda.mp3",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "4ff079e21a65052d05702d20882557b57c668079801fd8574c711a226057892d"
+    },
+    {
+      "file": "panda_bright_3.mp3",
+      "animal": "panda",
+      "preset": "bright",
+      "variant": 3,
+      "source": "panda.mp3",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "051e9804f2a041e41bd0527f2b44f70bc2316f240bc94960e1fe506288c3b915"
+    },
+    {
+      "file": "panda_deep_1.mp3",
+      "animal": "panda",
+      "preset": "deep",
+      "variant": 1,
+      "source": "panda.mp3",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "dee80a342fd733c2a11aa04c39a23cc04f4c54d2d13e5c445a2fbb7ba64f4412"
+    },
+    {
+      "file": "panda_deep_2.mp3",
+      "animal": "panda",
+      "preset": "deep",
+      "variant": 2,
+      "source": "panda.mp3",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "438edb9639b1c54518477076a9619579b33dddd0b31a3a92d1a6e8694fff33e6"
+    },
+    {
+      "file": "panda_deep_3.mp3",
+      "animal": "panda",
+      "preset": "deep",
+      "variant": 3,
+      "source": "panda.mp3",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "ef9795d352dee98c985e4563c088bb4d4fc8f2b96051b803549965fd7e317712"
+    },
+    {
+      "file": "bear_soft_1.mp3",
+      "animal": "bear",
+      "preset": "soft",
+      "variant": 1,
+      "source": "bear.mp3",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "19356ab0b43fa996a4697db38588c39bc995d8489a9c3913345559df337feda6"
+    },
+    {
+      "file": "bear_soft_2.mp3",
+      "animal": "bear",
+      "preset": "soft",
+      "variant": 2,
+      "source": "bear.mp3",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "2619438fc631f05b7017219ab94063de2d84e65681df7ac7e17ccc1c84a99cb4"
+    },
+    {
+      "file": "bear_soft_3.mp3",
+      "animal": "bear",
+      "preset": "soft",
+      "variant": 3,
+      "source": "bear.mp3",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "ea7a0b49f14c52b3f5cab0dae93427ee442978395ffd7e00815a63a0103b0864"
+    },
+    {
+      "file": "bear_bright_1.mp3",
+      "animal": "bear",
+      "preset": "bright",
+      "variant": 1,
+      "source": "bear.mp3",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "e39d1a5d86736839dc40ecdbdddf08b73592f92b3d52f27d86f22064fc538180"
+    },
+    {
+      "file": "bear_bright_2.mp3",
+      "animal": "bear",
+      "preset": "bright",
+      "variant": 2,
+      "source": "bear.mp3",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "26e82117314f0524ddf075166c7a347512d5b197bba454013a167960c28df314"
+    },
+    {
+      "file": "bear_bright_3.mp3",
+      "animal": "bear",
+      "preset": "bright",
+      "variant": 3,
+      "source": "bear.mp3",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "30b163479327f6f866aa88bab0bd3a085a6f66e54ac54fbc509dbeae54d4460b"
+    },
+    {
+      "file": "bear_deep_1.mp3",
+      "animal": "bear",
+      "preset": "deep",
+      "variant": 1,
+      "source": "bear.mp3",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "982ac8397ab4d99b9f2b9ac9ae6ec7c7b5bb2a3cef2aeaa6c573efaf15271c35"
+    },
+    {
+      "file": "bear_deep_2.mp3",
+      "animal": "bear",
+      "preset": "deep",
+      "variant": 2,
+      "source": "bear.mp3",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "3cb09b27321aeacbfe82cbc7e3ea8839576fac3ada1a0120ad2156b2786b76a6"
+    },
+    {
+      "file": "bear_deep_3.mp3",
+      "animal": "bear",
+      "preset": "deep",
+      "variant": 3,
+      "source": "bear.mp3",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "781d061e0dd8f50285b20d41f45871b489d6f767b79e8c05273947ffc25cbb44"
+    },
+    {
+      "file": "frog_soft_1.mp3",
+      "animal": "frog",
+      "preset": "soft",
+      "variant": 1,
+      "source": "frog.mp3",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "fb098c9c149ac1f9324628a3fb01ee27fbe6890a6101022725df30127d54ec50"
+    },
+    {
+      "file": "frog_soft_2.mp3",
+      "animal": "frog",
+      "preset": "soft",
+      "variant": 2,
+      "source": "frog.mp3",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "1965d124c67116c67efc19a84c73bf42810ba90bc6edeede48d8c38cd3a9f137"
+    },
+    {
+      "file": "frog_soft_3.mp3",
+      "animal": "frog",
+      "preset": "soft",
+      "variant": 3,
+      "source": "frog.mp3",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "f8371a39745247598993bff3ae83b3abd781f7da21f227e345747b691ea0c077"
+    },
+    {
+      "file": "frog_bright_1.mp3",
+      "animal": "frog",
+      "preset": "bright",
+      "variant": 1,
+      "source": "frog.mp3",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "01cd42807b51b2ae77a943a3bf6b4f16bb8dd76c7a7f9513325cd0fe2c1e2e54"
+    },
+    {
+      "file": "frog_bright_2.mp3",
+      "animal": "frog",
+      "preset": "bright",
+      "variant": 2,
+      "source": "frog.mp3",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "3c1336c54c33585db684b6a7aad09bd04aed83cde328625609bfa0cb6e3cc293"
+    },
+    {
+      "file": "frog_bright_3.mp3",
+      "animal": "frog",
+      "preset": "bright",
+      "variant": 3,
+      "source": "frog.mp3",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "3b6606cbcf37f4d3930dabf846219511bae31a557269ff7896926401debc6206"
+    },
+    {
+      "file": "frog_deep_1.mp3",
+      "animal": "frog",
+      "preset": "deep",
+      "variant": 1,
+      "source": "frog.mp3",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "9ef30b033079c4f1c8b8b33d50387cc5ae7e9ed540af11a11c62e158d4ba4328"
+    },
+    {
+      "file": "frog_deep_2.mp3",
+      "animal": "frog",
+      "preset": "deep",
+      "variant": 2,
+      "source": "frog.mp3",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "13558a3b4fedcf4f3eb5d9b30071270a1250954892ca8e6e5f0b97428147e527"
+    },
+    {
+      "file": "frog_deep_3.mp3",
+      "animal": "frog",
+      "preset": "deep",
+      "variant": 3,
+      "source": "frog.mp3",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "322a1c3d3c30b984203be578f9422875ddada19ed95ca7124613c3af358fa20f"
+    },
+    {
+      "file": "owl_soft_1.mp3",
+      "animal": "owl",
+      "preset": "soft",
+      "variant": 1,
+      "source": "owl.mp3",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "9f715f6a530b4d801cb0d2c2a80e98ce389ab9884e59b8c1b6234862d925e3db"
+    },
+    {
+      "file": "owl_soft_2.mp3",
+      "animal": "owl",
+      "preset": "soft",
+      "variant": 2,
+      "source": "owl.mp3",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "c9873233cf98336fd8c7f12e5ef61a29f858922e359678ee0d31f5a496d34ba1"
+    },
+    {
+      "file": "owl_soft_3.mp3",
+      "animal": "owl",
+      "preset": "soft",
+      "variant": 3,
+      "source": "owl.mp3",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "0f4fea7cdc11a52c3b5f374eee9009da32f1fd89f4e173dc48b2e39e79f97c61"
+    },
+    {
+      "file": "owl_bright_1.mp3",
+      "animal": "owl",
+      "preset": "bright",
+      "variant": 1,
+      "source": "owl.mp3",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "8c78bece6a93bef5e99afc9cee00a396fb2970063d0809441a5bb8802deafc0e"
+    },
+    {
+      "file": "owl_bright_2.mp3",
+      "animal": "owl",
+      "preset": "bright",
+      "variant": 2,
+      "source": "owl.mp3",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "0a9fb4246f53a42f1c95455f1342705ac53e91ff4dbd06f0acb92c5b78f9ed55"
+    },
+    {
+      "file": "owl_bright_3.mp3",
+      "animal": "owl",
+      "preset": "bright",
+      "variant": 3,
+      "source": "owl.mp3",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "0a38238b8fdfd32183b38f3020fc13363f1d328e882b8fc08a03b1cc89b503ce"
+    },
+    {
+      "file": "owl_deep_1.mp3",
+      "animal": "owl",
+      "preset": "deep",
+      "variant": 1,
+      "source": "owl.mp3",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "b9320f27e9bf9b6a44410a75ac4a29b03e7b949c68c9918ad8a48deb712791d9"
+    },
+    {
+      "file": "owl_deep_2.mp3",
+      "animal": "owl",
+      "preset": "deep",
+      "variant": 2,
+      "source": "owl.mp3",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "acea43277e771335e9351751e997cfc03108b96ee13771d4413fd61aa00f7514"
+    },
+    {
+      "file": "owl_deep_3.mp3",
+      "animal": "owl",
+      "preset": "deep",
+      "variant": 3,
+      "source": "owl.mp3",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "2bcc710338367f95fa9a16c39b55a91ebc4ac1427fae8bd72413042e8b622f27"
+    },
+    {
+      "file": "turtle_soft_1.mp3",
+      "animal": "turtle",
+      "preset": "soft",
+      "variant": 1,
+      "source": "turtle.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "271906a4aef38d3d4bd4d5d04c3afab0e0c9128faf8dc5a4998ed605bab02d03"
+    },
+    {
+      "file": "turtle_soft_2.mp3",
+      "animal": "turtle",
+      "preset": "soft",
+      "variant": 2,
+      "source": "turtle.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "c2a2b61e1b0e9e1979f303052ee0ee11fc7e1cfc6e3ccc742653aee585baa3e0"
+    },
+    {
+      "file": "turtle_soft_3.mp3",
+      "animal": "turtle",
+      "preset": "soft",
+      "variant": 3,
+      "source": "turtle.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "8a263edf57873b9c4b6187846b4cc2da0bcaa94a4a1289326ed06c0eba186b8a"
+    },
+    {
+      "file": "turtle_bright_1.mp3",
+      "animal": "turtle",
+      "preset": "bright",
+      "variant": 1,
+      "source": "turtle.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "9f582984082db2d0ad48c3e2715a6d317b40d0cf52e0d799a17309f8ff421303"
+    },
+    {
+      "file": "turtle_bright_2.mp3",
+      "animal": "turtle",
+      "preset": "bright",
+      "variant": 2,
+      "source": "turtle.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "731b2f1b849a927947d6124073c57d59614b8722bd299599e920b0101b9d61ec"
+    },
+    {
+      "file": "turtle_bright_3.mp3",
+      "animal": "turtle",
+      "preset": "bright",
+      "variant": 3,
+      "source": "turtle.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "b676e537196a658874f441ca4b7a1830e012cc68a04003098a5f5beed75d1594"
+    },
+    {
+      "file": "turtle_deep_1.mp3",
+      "animal": "turtle",
+      "preset": "deep",
+      "variant": 1,
+      "source": "turtle.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "7c2d0b6e75563b2421f3021000d8672b04f2b3b24fddb2bf5a808a4f5ed9b722"
+    },
+    {
+      "file": "turtle_deep_2.mp3",
+      "animal": "turtle",
+      "preset": "deep",
+      "variant": 2,
+      "source": "turtle.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 2,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "f0f3d49eb98470ad02590e12021de4e72ccd56d4371223b4152f81f120a94cfd"
+    },
+    {
+      "file": "turtle_deep_3.mp3",
+      "animal": "turtle",
+      "preset": "deep",
+      "variant": 3,
+      "source": "turtle.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 3,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "14e82d8a842ee881d4b63a293ce3f7e69c927390bc3e0c048f930db266ca05a8"
+    },
+    {
+      "file": "monkey_soft_1.mp3",
+      "animal": "monkey",
+      "preset": "soft",
+      "variant": 1,
+      "source": "monkey-cc0/monkey-1.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "7a57506781068e542770a4987bad1add92f97db206eb159bf9b1154ec455af53"
+    },
+    {
+      "file": "monkey_soft_2.mp3",
+      "animal": "monkey",
+      "preset": "soft",
+      "variant": 2,
+      "source": "monkey-cc0/monkey-2.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "c98a1102b0151aa09c89a7e00a3821e4cba24dcdb3681194972b34341a5402a6"
+    },
+    {
+      "file": "monkey_soft_3.mp3",
+      "animal": "monkey",
+      "preset": "soft",
+      "variant": 3,
+      "source": "monkey-cc0/monkey-3.wav",
+      "pitch": 1.1,
+      "tempo": 0.92,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "8f248826651ad20b1a95625bd72feba6cd4e96968a538f3d69696db9f75cbd8a"
+    },
+    {
+      "file": "monkey_bright_1.mp3",
+      "animal": "monkey",
+      "preset": "bright",
+      "variant": 1,
+      "source": "monkey-cc0/monkey-1.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "e29b7a4f8e10302217a9174e8b6f0f86130a5ad23f2ca47444ff365fcef044f7"
+    },
+    {
+      "file": "monkey_bright_2.mp3",
+      "animal": "monkey",
+      "preset": "bright",
+      "variant": 2,
+      "source": "monkey-cc0/monkey-2.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "d2578a71ece1ff0b91ef0dd10e1eb98e56e960fefaf0bdfa50eb53a2bdffcd2d"
+    },
+    {
+      "file": "monkey_bright_3.mp3",
+      "animal": "monkey",
+      "preset": "bright",
+      "variant": 3,
+      "source": "monkey-cc0/monkey-3.wav",
+      "pitch": 1.28,
+      "tempo": 1.08,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "0e20da021a39f5e460e9d54494578056dced12cb64739971fa1321b05961d0b5"
+    },
+    {
+      "file": "monkey_deep_1.mp3",
+      "animal": "monkey",
+      "preset": "deep",
+      "variant": 1,
+      "source": "monkey-cc0/monkey-1.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "1d7fd60d57a3353ba5d983bb82113f5b31a860c26be0d4b202a395d2eb6fb2f0"
+    },
+    {
+      "file": "monkey_deep_2.mp3",
+      "animal": "monkey",
+      "preset": "deep",
+      "variant": 2,
+      "source": "monkey-cc0/monkey-2.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "4ccefe3021923cf9d8af277965c6a5e5f3e6dc18c340251d99ebba82f767d690"
+    },
+    {
+      "file": "monkey_deep_3.mp3",
+      "animal": "monkey",
+      "preset": "deep",
+      "variant": 3,
+      "source": "monkey-cc0/monkey-3.wav",
+      "pitch": 0.82,
+      "tempo": 0.94,
+      "repeats": 1,
+      "offset": 0,
+      "changes": "Trimmed, filtered, pitch/time edited, normalized, faded; rhythmic repeats where noted",
+      "sha256": "95cfc701f6f5740acdaf6aca2351534552ed0d9fd419a4081a8adafa25ffff04"
+    }
+  ]
+}

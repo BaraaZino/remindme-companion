@@ -97,33 +97,39 @@ final class VoiceCapture {
           stopPlayer();
           Map<?, ?> map = (Map<?, ?>) args;
           String path = (String) map.get("uri");
-          if (!VoiceFiles.owned(activity, path)) {
+          if (!FlutterVoiceAssets.canPlay(activity, path)) {
             result.error("audio", "This clip is no longer available. Import it again.", null);
             return true;
           }
-          playing = result;
           player = new MediaPlayer();
-          player.setAudioAttributes(
-              new AudioAttributes.Builder()
-                  .setUsage(AudioAttributes.USAGE_MEDIA)
-                  .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                  .build());
-          player.setDataSource(path);
-          float volume = ((Number) map.get("volume")).floatValue();
-          player.setVolume(volume, volume);
-          player.setOnPreparedListener(p -> p.start());
-          player.setOnCompletionListener(p -> stopPlayer());
-          player.setOnErrorListener(
-              (p, w, e) -> {
-                MethodChannel.Result failed = playing;
-                playing = null;
-                stopPlayer();
-                if (failed != null)
-                  failed.error(
-                      "audio", "This clip cannot be played. Try another audio file.", null);
-                return true;
-              });
-          player.prepareAsync();
+          try {
+            player.setAudioAttributes(
+                new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build());
+            FlutterVoiceAssets.setDataSource(activity, player, path);
+            float volume = ((Number) map.get("volume")).floatValue();
+            player.setVolume(volume, volume);
+            player.setOnPreparedListener(p -> p.start());
+            player.setOnCompletionListener(p -> stopPlayer());
+            player.setOnErrorListener(
+                (p, w, e) -> {
+                  MethodChannel.Result failed = playing;
+                  playing = null;
+                  stopPlayer();
+                  if (failed != null)
+                    failed.error(
+                        "audio", "This clip cannot be played. Try another audio file.", null);
+                  return true;
+                });
+            playing = result;
+            player.prepareAsync();
+          } catch (Exception failure) {
+            playing = null;
+            stopPlayer();
+            throw failure;
+          }
           handler.postDelayed(this::stopPlayer, 75000);
           return true;
         }

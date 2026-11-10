@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/services.dart';
+import 'animal_voices.dart';
 import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 import 'companion_model.dart';
@@ -185,6 +188,12 @@ class VoiceTools {
 
   static Future<void> _play(String uri, double volume, int token) async {
     if (token != _playToken) return;
+    if (uri.startsWith('asset:')) {
+      final bytes = await rootBundle.load(uri.substring(6));
+      uri =
+          'data:audio/mpeg;base64,${base64Encode(bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes))}';
+      if (token != _playToken) return;
+    }
     final done = Completer<void>();
     _audioDone = done;
     final player = web.HTMLAudioElement()
@@ -215,7 +224,7 @@ class VoiceTools {
     if (!pet.voiceEnabled) return;
     await stopPlayback();
     final token = _playToken;
-    final clip = pet.clip(kind);
+    final clip = AnimalVoices.clip(pet, kind);
     if (clip.isNotEmpty) await _play(clip, pet.volume, token);
     if (token != _playToken || (clip.isNotEmpty && !pet.readText)) return;
     final done = Completer<void>();

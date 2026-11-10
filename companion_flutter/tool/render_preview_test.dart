@@ -113,6 +113,13 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
     await save('v03-appearance');
+    await tester.tap(find.byKey(const ValueKey('companion-section-3')));
+    await tester.pump();
+    await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('voice-option-soft')).hitTestable(), 150,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pump();
+    await save('v05-voices');
     await tester.scrollUntilVisible(
         find.byKey(const ValueKey('record-task')), 350,
         scrollable: find.byType(Scrollable).first);

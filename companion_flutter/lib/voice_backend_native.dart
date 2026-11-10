@@ -1,6 +1,8 @@
 import 'companion_model.dart';
+import 'animal_voices.dart';
 
 class VoiceTools {
+  static int _playToken = 0;
   static Future<VoiceClip?> importClip() async {
     final result = await CompanionModel.channel
         .invokeMethod<Map<dynamic, dynamic>>('pickVoice');
@@ -27,18 +29,35 @@ class VoiceTools {
     } catch (_) {}
   }
 
-  static Future<void> stopPlayback() async {
+  static Future<int> _beginPlayback() async {
+    final token = ++_playToken;
     await CompanionModel.channel.invokeMethod('stopSpeech');
-    await CompanionModel.channel.invokeMethod('stopClip');
+    if (token == _playToken) {
+      await CompanionModel.channel.invokeMethod('stopClip');
+    }
+    return token;
+  }
+
+  static Future<void> stopPlayback() async {
+    await _beginPlayback();
   }
 
   static Future<void> playClip(String uri, double volume) async {
+    final token = await _beginPlayback();
+    if (token != _playToken) return;
     await CompanionModel.channel
         .invokeMethod('playClip', {'uri': uri, 'volume': volume});
   }
 
   static Future<void> say(Pet pet, String text, String kind) async {
-    await CompanionModel.channel.invokeMethod(
-        'say', {'profile': pet.toJson(), 'text': text, 'kind': kind});
+    if (!pet.voiceEnabled) return;
+    final token = await _beginPlayback();
+    if (token != _playToken) return;
+    await CompanionModel.channel.invokeMethod('say', {
+      'profile': pet.toJson(),
+      'text': text,
+      'kind': kind,
+      'clip': AnimalVoices.clip(pet, kind)
+    });
   }
 }

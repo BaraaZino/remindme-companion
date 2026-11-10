@@ -27,6 +27,7 @@ class Pet {
       this.position = 'center',
       this.vertical = 'bottom',
       this.voiceEnabled = false,
+      this.voicePreset = 'custom',
       this.readText = false,
       this.volume = .8,
       this.rate = 1,
@@ -45,7 +46,8 @@ class Pet {
       taskClip,
       taskClipName,
       timerClip,
-      timerClipName;
+      timerClipName,
+      voicePreset;
   int color, accent, textColor, bubbleColor;
   double size,
       fontSize,
@@ -76,6 +78,10 @@ class Pet {
       position: j['position'] as String? ?? 'center',
       vertical: j['vertical'] as String? ?? 'bottom',
       voiceEnabled: j['voiceEnabled'] == true,
+      voicePreset: const ['custom', 'system', 'soft', 'bright', 'deep']
+              .contains(j['voicePreset'])
+          ? j['voicePreset'] as String
+          : 'custom',
       readText: j['readText'] == true,
       volume: (j['volume'] as num?)?.toDouble() ?? .8,
       rate: (j['rate'] as num?)?.toDouble() ?? 1,
@@ -103,6 +109,7 @@ class Pet {
         'position': position,
         'vertical': vertical,
         'voiceEnabled': voiceEnabled,
+        'voicePreset': voicePreset,
         'readText': readText,
         'volume': volume,
         'rate': rate,

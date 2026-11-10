@@ -1,7 +1,7 @@
 name: remindme_companion
 description: A gentle task companion with Mochi the pixel cat.
 publish_to: none
-version: 0.4.0+5
+version: 0.5.1+7
 environment:
   sdk: '>=3.6.0 <4.0.0'
 dependencies:
@@ -26,6 +26,7 @@ flutter:
       fonts:
         - asset: assets/fonts/RobotoMono.ttf
   assets:
+    - assets/audio/animal_voices/
     - assets/fonts/Nunito-OFL.txt
     - assets/fonts/Lora-OFL.txt
     - assets/fonts/RobotoMono-OFL.txt

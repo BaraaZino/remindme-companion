@@ -89,7 +89,9 @@ final class InAppSpeech {
       return;
     }
     String text = (String) args.get("text");
-    String clip = "timer".equals(args.get("kind")) ? pet.timerClip : pet.taskClip;
+    String clip = args.get("clip") instanceof String
+        ? (String) args.get("clip")
+        : "timer".equals(args.get("kind")) ? pet.timerClip : pet.taskClip;
     Runnable speech =
         () -> {
           if (token != generation || pending == null) return;
@@ -102,7 +104,7 @@ final class InAppSpeech {
           if (token == generation && pending != null) stop();
         };
     handler.postDelayed(timeout, 75000);
-    if (!clip.isEmpty() && VoiceFiles.owned(activity, clip)) {
+    if (!clip.isEmpty() && FlutterVoiceAssets.canPlay(activity, clip)) {
       try {
         player = new MediaPlayer();
         player.setAudioAttributes(
@@ -110,7 +112,7 @@ final class InAppSpeech {
                 .setUsage(AudioAttributes.USAGE_MEDIA)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                 .build());
-        player.setDataSource(clip);
+        FlutterVoiceAssets.setDataSource(activity, player, clip);
         player.setVolume(pet.volume, pet.volume);
         player.setOnPreparedListener(
             p -> {

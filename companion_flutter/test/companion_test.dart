@@ -8,6 +8,7 @@ import 'package:remindme_companion/companion_model.dart';
 import 'package:remindme_companion/main.dart';
 import 'package:remindme_companion/visit_overlay.dart';
 import 'package:remindme_companion/pixel_cat.dart';
+import 'package:remindme_companion/animal_catalog.dart';
 
 Future<void> nav(WidgetTester tester, String title) async {
   await tester.tap(find
@@ -184,6 +185,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
     await tester.enterText(find.byType(TextField).first, 'Sunny');
+    await tester.ensureVisible(find.text('Fox'));
     await tester.tap(find.text('Fox'));
     await tester.tap(find.text('Save companion'));
     await tester.pump();
@@ -309,6 +311,8 @@ void main() {
     await tester.tap(find.byTooltip('Settings for Mochi'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
+    await tester.tap(find.byKey(const ValueKey('companion-section-3')));
+    await tester.pump();
     await tester.scrollUntilVisible(
         find.byKey(const ValueKey('record-task')), 350,
         scrollable: find.byType(Scrollable).first);
@@ -407,10 +411,11 @@ void main() {
             code: 'calendar',
             message: 'Allow calendar access to remove the linked event.');
       }
-      if (call.method == 'loadState')
+      if (call.method == 'loadState') {
         return {
           'tasks': [task.toJson()]
         };
+      }
       return null;
     });
     final model = CompanionModel()..tasks = [task];
@@ -517,6 +522,72 @@ void main() {
     await closeApp(tester);
     controller.dispose();
   });
+  test('Every animal saves without changing existing tasks or recordings',
+      () async {
+    final model = CompanionModel();
+    await model.load();
+    final original = model.defaultPet.copy()
+      ..taskClip = 'existing-task.m4a'
+      ..timerClip = 'existing-timer.m4a'
+      ..voiceEnabled = true;
+    await model.savePet(original);
+    await model.upsert(Task(id: 'keep', title: 'Keep this task'));
+    for (final animal in animalDesigns) {
+      await model.savePet(Pet(id: animal.id, animal: animal.id));
+    }
+    final restored = CompanionModel();
+    await restored.load();
+    expect(restored.tasks.single.title, 'Keep this task');
+    expect(restored.defaultPet.toJson(), original.toJson());
+    for (final animal in animalDesigns) {
+      expect(restored.pet(animal.id).animal, animal.id);
+    }
+    model.dispose();
+    restored.dispose();
+  });
+
+  testWidgets('Animal and section changes keep the draft and existing audio',
+      (tester) async {
+    screen(tester, size: const Size(320, 740));
+    final model = CompanionModel()..loaded = true;
+    model.defaultPet.taskClip = 'keep.m4a';
+    model.defaultPet.taskClipName = 'My recording';
+    await tester.pumpWidget(RemindMeApp(model: model));
+    await tester.pump();
+    await nav(tester, 'Companions');
+    await tester.scrollUntilVisible(find.byTooltip('Settings for Mochi'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.tap(find.byTooltip('Settings for Mochi'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.scrollUntilVisible(find.text('Turtle').hitTestable(), 250,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pump();
+    await tester.tap(find.text('Turtle'));
+    await tester.scrollUntilVisible(
+        find.text('Use suggested colors').hitTestable(), 180,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pump();
+    await tester.tap(find.text('Use suggested colors'));
+    for (final i in [1, 2, 3, 0]) {
+      await tester.scrollUntilVisible(
+          find.byKey(ValueKey('companion-section-$i')), -300,
+          scrollable: find.byType(Scrollable).first);
+      await tester.tap(find.byKey(ValueKey('companion-section-$i')));
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    }
+    await tester.tap(find.text('Save companion'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(model.defaultPet.animal, 'turtle');
+    expect(model.defaultPet.color, animalDesign('turtle').color);
+    expect(model.defaultPet.taskClip, 'keep.m4a');
+    expect(model.defaultPet.taskClipName, 'My recording');
+    await closeApp(tester);
+    model.dispose();
+  });
+
   test('Visit queue pauses for voice recording and resumes in order', () {
     final c = VisitController();
     final one = VisitRequest(pet: Pet(id: 'one'), text: 'One'),

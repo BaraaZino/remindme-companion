@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'companion_model.dart';
 import 'pixel_cat.dart';
+import 'animal_catalog.dart';
+import 'animal_voices.dart';
 import 'app_style.dart';
 import 'companion_editor.dart';
 import 'visit_overlay.dart';
@@ -480,19 +482,21 @@ class _CompanionHomeState extends State<CompanionHome>
               'Companions appear only inside this app. They hide and stop speaking when you leave it.',
               style: TextStyle(fontSize: 12, color: muted, height: 1.6)),
         ])),
-        ...model.pets.map(companionCard),
         FilledButton.icon(
             onPressed: () => editPet(
                 Pet(
                     id: DateTime.now().microsecondsSinceEpoch.toString(),
                     name: 'New friend',
                     animal: 'dog',
+                    voicePreset: 'soft',
                     color: 0xFFB88C67,
                     accent: 0xFFF1DCC0),
                 isNew: true),
             icon: const Icon(Icons.add_rounded),
             label: const Text('Add companion')),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        ...model.pets.map(companionCard),
+        const SizedBox(height: 10),
         if (isAndroid)
           panel(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             sectionTitle('Permissions'),
@@ -513,7 +517,7 @@ class _CompanionHomeState extends State<CompanionHome>
     return panel(
         Column(children: [
           Row(children: [
-            petArt(pet, size: 76, walking: true),
+            petArt(pet, size: 88, walking: false),
             const SizedBox(width: 14),
             Expanded(
                 child: Column(
@@ -523,7 +527,7 @@ class _CompanionHomeState extends State<CompanionHome>
                       style: const TextStyle(
                           fontSize: 22, fontWeight: FontWeight.w800)),
                   Text(
-                      '${pet.animal} · $tasks ${tasks == 1 ? 'task' : 'tasks'} · $timers ${timers == 1 ? 'timer' : 'timers'}',
+                      '${animalDesign(pet.animal).label} · $tasks ${tasks == 1 ? 'task' : 'tasks'} · $timers ${timers == 1 ? 'timer' : 'timers'}',
                       style: const TextStyle(fontSize: 12, color: muted))
                 ])),
             IconButton(
@@ -532,11 +536,20 @@ class _CompanionHomeState extends State<CompanionHome>
                 icon: const Icon(Icons.tune_rounded, color: green))
           ]),
           const SizedBox(height: 10),
+          Align(
+              alignment: Alignment.centerLeft,
+              child: Text(AnimalVoices.summary(pet),
+                  style: const TextStyle(fontSize: 12, color: muted))),
+          const SizedBox(height: 8),
           Wrap(
               spacing: 8,
               runSpacing: 6,
               alignment: WrapAlignment.center,
               children: [
+                OutlinedButton.icon(
+                    onPressed: () => editPet(pet),
+                    icon: const Icon(Icons.tune_rounded, size: 18),
+                    label: const Text('Customize')),
                 OutlinedButton.icon(
                     onPressed: () => visit(pet, 'task'),
                     icon: const Icon(Icons.play_arrow_rounded, size: 18),

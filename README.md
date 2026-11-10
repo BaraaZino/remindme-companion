@@ -6,10 +6,11 @@ A Flutter Android task app with companions that walk in, stop to deliver a remin
 
 The bottom navigation has **Tasks**, **Companions**, and **App timers**. There are no page-switching buttons in the header. Individual companion settings open from that companion’s card.
 
-- Create and name multiple companions. Choose cat, dog, bunny, or fox, with independent body and accent colors.
+- Create and name multiple companions. Choose cat, dog, bunny, fox, bear, panda, frog, penguin, owl, monkey, or turtle, with independent body and accent colors. The animal picker shows suggested palettes; switching animals preserves your current colors until you tap **Use suggested colors**.
 - Customize size, opacity, bubble colors, font family/size, rounded corners, walking speed, entrance side, stopping position, vertical position, and reading time.
+- Choose three built-in sound styles per animal (**Soft**, **Bright**, **Low**), each with three offline audio variations selected randomly without consecutive repeats. Preview each style in the Voice section, or keep your own recordings / system voice.
 - Record or import separate audio clips for task reminders and app-timer nudges. Clips are limited to 60 seconds and 5 MB. Recording asks for microphone permission only when you press Record. Imported originals are kept; Android copies selected audio into the app’s private files.
-- Enable or disable each companion’s voice, set volume, and optionally read the reminder text after a custom clip using the system voice. Without a clip, an enabled voice reads the reminder through system text-to-speech. Clips play as recorded; this is not voice cloning.
+- Enable or disable each companion’s voice, set volume, and optionally read the reminder text after a custom clip using the system voice. With **My recordings** selected and no clip, an enabled voice reads the reminder through system text-to-speech. A built-in style plays its selected animal sound; enable **Read reminder text after the sound** to add speech. Clips play as recorded; this is not voice cloning.
 - Select a companion on each task and each app-timer rule. Each rule has its own watched apps, time limit, and enable switch.
 - The pet enters from an edge, pauses with its bubble and optional audio, waits for both reading time and audio completion, then continues off the opposite edge. Multiple reminders queue instead of overlapping.
 - Give dated tasks daily reminders starting up to 30 days before the deadline, plus custom final reminders in hours (including fractional hours). Snooze adds a reminder without changing the deadline.
@@ -63,7 +64,8 @@ companion_flutter/
     main.dart                  App entry point, bottom tabs, tasks and app timers
     companion_model.dart       Pet, Task, TimerRule and VoiceClip data; persistence
     companion_editor.dart      Individual companion settings and recording dialog
-    pixel_cat.dart             Four animated animal designs, drawn with a Canvas
+    pixel_cat.dart             Eleven animated animal designs on a shared 36 × 40 Canvas grid
+    animal_catalog.dart        Stable animal IDs, descriptions and suggested palettes
     app_style.dart             Shared colors and reusable visual components
     visit_overlay.dart         In-app visit queue, lifecycle, and bubble fades on all devices
     voice_backend.dart         Chooses the Android or browser audio implementation
@@ -151,3 +153,35 @@ The actual Android widget is drawn by `app/src/main/res/layout/task_widget.xml` 
 A task now stores `dailyDays`, `reminderOffsets` (minutes), `reminderFrom`, `lastReminderAt`, and `snoozeUntil`. `due` remains its deadline. Keeping snooze separate prevents accidentally moving the calendar event. Old tasks with none of these fields keep their single deadline reminder. `CalendarSync` stores only the linked calendar/event IDs with each task; settings and recording files are untouched.
 
 `MainActivity` bridges Dart calls to calendar permission and provider operations. `ReminderReceiver` selects the next slot using `ReminderPlan`, claims delivered reminders in `Store`, and schedules the following alarm. App-only visuals and audio are separate: `VisitOverlay` keeps a fixed pet Y coordinate while the bubble fades; `InAppSpeech` stops when Android pauses the activity. `CompanionService` monitors app timers and sends notification/visit signals, without creating a native floating window.
+
+## Companion design and settings update
+
+Companion cards have a labeled **Customize** button, a voice summary, and a **Test visit** action. **Add companion** is above the collection. The editor separates settings into **Look**, **Bubble**, **Movement**, and **Voice**. Its preview lets you switch between idle, walk, and talk without saving, and the top-right play button runs a complete visit with the draft settings. Save stays at the bottom of the screen.
+
+`animal_catalog.dart` lists eleven animal designs. `AnimalPainter.paint()` in `pixel_cat.dart` uses the same 36 × 40 grid for every animal, with stepped outlines, limited shading, and characteristic ears, markings, tails, wings, or shells. Four walking poses repeat every 640 ms; idle animation has a slower 3.84-second breathing/blinking loop. Bunnies and frogs hop, penguins waddle, and turtles keep their shells level. Reduced-motion settings stop the animation. The renderer remains code-based, so body and accent colors stay customizable without loading image files.
+
+Art guidance: [Pixel Art Sprites skill](https://github.com/Dizzd/aseprite-extension-mcp/tree/main/skills/pixel-art-sprites), especially its silhouette, palette, walk-cycle, and consistent-resolution patterns. The animal artwork is drawn in this project, rather than copied from a sprite pack.
+
+These are Dart/Flutter presentation changes. `Pet.toJson()` / `Pet.fromJson()`, storage keys, native Java audio handling, and recording paths are unchanged. Existing companions retain their IDs, colors, assignments, and recordings. Defaults are offered explicitly rather than applied to saved companions.
+
+Run `./scripts/flutterw test tool/render_animals_test.dart tool/render_preview_test.dart` to generate the animal walk-pose study and screen previews in `.tools/`. These are off-screen renders. Check the final animation pacing, touch controls, text scaling, recording, and audio on a real Android phone before release.
+
+## Offline animal voices (0.5.0)
+
+Open **Companions → Customize → Voice** to choose **Soft**, **Bright**, or **Low** animal sounds. Each style contains three bundled MP3 variations. The play button auditions a randomly selected variation; tap it again to stop. Selecting a source enables that companion’s voice. **My recordings** retains separate task/timer clips, and **System voice only** reads reminders without an animal sound. Existing companions default to **My recordings**, preserving their previous playback behavior. Newly created companions start with the Soft style selected but their voice remains off until enabled or a source is chosen.
+
+`animal_voices.dart` owns the catalog and random selection. `AnimalVoicePicker.pick()` excludes the last clip for that companion/animal/style, including across task and timer visits. Selection history is temporary and resets when the app restarts. `Pet.voicePreset` is the only added saved field; missing/unknown values fall back to `custom`. Selecting a preset leaves `taskClip`, `timerClip`, names, task assignments and recording files untouched. Returning to **My recordings** restores the saved clips. Custom recordings remain one clip per reminder type; random selection applies to the built-in sets.
+
+`voice_backend_native.dart` passes a chosen clip as a playback override to Java; it does not rewrite the stored profile. `FlutterVoiceAssets.java` permits only the 99 known asset names and loads them from the APK. `InAppSpeech.java` plays the sound before optional system speech; `VoiceCapture.java` uses the same loader for sample buttons. The existing recording ownership/deletion rules in `VoiceFiles.java` are unchanged. Browser playback in `voice_backend_web.dart` loads the same packaged files through Flutter’s asset bundle. No runtime downloads, API keys, account, or internet permission are required.
+
+The three voices are sound-designed pitch/timing styles, not recordings of three separate individual animals. Cats, dogs, penguins and monkeys use three source calls per style. Monkey sounds are performed imitations by AntumDeluge (CC0), with pitch/timing edits for the three styles. Other animal styles use edited rhythmic variations of their source call; rabbits use three extracts of nibbling/rustling, and turtles use original synthesized cartoon chirps. The app labels these distinctions. SFXMint sources are stylized AI-generated effects. Modified Cat SFX (SFX by Dan Knoflicek) and Penguin SFX (Wolfgang Wozniak) are CC BY 3.0; the other downloaded sounds are CC0. **Sound sources & credits** in the Voice section shows attribution and source/license URLs. The packaged `assets/audio/animal_voices/CREDITS.txt` and `manifest.json` contain the complete credits, input/output SHA-256 hashes and transformations.
+
+`python3 scripts/build_animal_voices.py` rebuilds the 99 assets using ffmpeg and the original files cached in `.tools/animal-audio-sources`. It makes no network requests. The manifest lists source download URLs; unpack `dog.7z` into `dog/` and `Penguin_sfx.zip` into `penguin/`, save Cat 1–3 WAVs as `cat1.wav`–`cat3.wav`, RabbitEating.wav as `rabbit.wav`, and the five SFXMint MP3s as their animal IDs. Respect the source download limits when refreshing the cache. The generated MP3s ship with the repository, so ordinary app builds do not require ffmpeg or this source cache.
+
+Checks include asset completeness, random variation, legacy profile migration, preset persistence, custom-clip preservation, channel overrides, audio-start cancellation, and phone-width selection/saving. All 99 MP3s have been decoded with ffmpeg and checked against their manifest hashes. A real phone test is still needed for perceived sound quality/volume, built-in and custom playback, optional speech, microphone recording, and interruption when switching apps. The browser build verifies compilation, not real browser audio/autoplay behavior.
+
+## Monkey companion (0.5.1)
+
+The animal picker includes **Monkey**, with brown fur, a cream face mask, round ears, long arms and a curled tail. `AnimalPainter.paint()` in `pixel_cat.dart` draws and animates it on the same 36 × 40 grid as the other companions. `animal_catalog.dart` supplies its label and suggested colors, while `voicesFor()` in `animal_voices.dart` supplies Soft, Bright and Low chatters. Each style has three random variations, and custom recordings still work.
+
+Monkey Sounds by AntumDeluge: https://opengameart.org/content/monkey-sounds — CC0 1.0. Use the linked `monkey-sounds_0.zip` archive (includes `LICENSE.txt` for CC0), extracting its WAVs to `.tools/animal-audio-sources/monkey-cc0/`. Run `python3 scripts/build_animal_voices.py --animal monkey` to rebuild just the nine monkey clips while retaining other animals’ clips and credits. The Android asset loader permits the new monkey filenames. Saved companion IDs, settings, task assignments and recordings retain the same format.
