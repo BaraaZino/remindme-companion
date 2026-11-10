@@ -1,112 +1,57 @@
 # RemindMe Companion
 
-A Flutter Android task app with companions that walk in, stop to deliver a reminder, and then walk off-screen inside RemindMe. Pets and their voices hide when you leave the app. Each task and app timer can use a different named companion. A compact Android home-screen widget shows a title and top-right add button, with a completion circle and group subtitle on each row.
+RemindMe is an Android task app with small animated animal companions. A companion walks in, shows a reminder, optionally plays a sound or your recording, and walks away. Visits happen inside RemindMe; background reminders use Android notifications.
 
-## What you can configure
+This guide has two main parts:
 
-The bottom navigation has **Tasks**, **Companions**, and **App timers**. There are no page-switching buttons in the header. Individual companion settings open from that companion’s card.
+- [Part 1 — The code and how the app is built](#part-1--the-code-and-how-the-app-is-built): languages, files, architecture, development, builds, and checks.
+- [Part 2 — App features and how to use them on your phone](#part-2--app-features-and-how-to-use-them-on-your-phone): installation, tasks, companions, voices, timers, calendars, and the home-screen widget.
 
-- Create and name multiple companions. Choose cat, dog, bunny, fox, bear, panda, frog, penguin, owl, monkey, or turtle, with independent body and accent colors. The animal picker shows suggested palettes; switching animals preserves your current colors until you tap **Use suggested colors**.
-- Customize size, opacity, bubble colors, font family/size, rounded corners, walking speed, entrance side, stopping position, vertical position, and reading time.
-- Choose three built-in sound styles per animal (**Soft**, **Bright**, **Low**), each with three offline audio variations selected randomly without consecutive repeats. Preview each style in the Voice section, or keep your own recordings / system voice.
-- Record or import separate audio clips for task reminders and app-timer nudges. Clips are limited to 60 seconds and 5 MB. Recording asks for microphone permission only when you press Record. Imported originals are kept; Android copies selected audio into the app’s private files.
-- Enable or disable each companion’s voice, set volume, and optionally read the reminder text after a custom clip using the system voice. With **My recordings** selected and no clip, an enabled voice reads the reminder through system text-to-speech. A built-in style plays its selected animal sound; enable **Read reminder text after the sound** to add speech. Clips play as recorded; this is not voice cloning.
-- Select a companion on each task and each app-timer rule. Each rule has its own watched apps, time limit, and enable switch.
-- The pet enters from an edge, pauses with its bubble and optional audio, waits for both reading time and audio completion, then continues off the opposite edge. Multiple reminders queue instead of overlapping.
-- Give dated tasks daily reminders starting up to 30 days before the deadline, plus custom final reminders in hours (including fractional hours). Snooze adds a reminder without changing the deadline.
-- Optionally link a dated task to a writable phone calendar, including Outlook calendars exposed by Android sync. RemindMe manages repeated notifications.
-- Removing a companion reassigns its tasks and timers; it does not delete those tasks. At least one companion is kept.
+## Part 1 — The code and how the app is built
 
-The app has no account, backend, analytics, or internet permission in the Android release. Tasks and companion settings are stored locally. Calendar events you explicitly link are written to the selected phone calendar and may sync through its account provider. Android speech follows the phone’s installed text-to-speech engine and its settings.
+### Languages and responsibilities
 
-## Develop and preview
+| Technology | What it does in this project |
+| --- | --- |
+| Dart | Defines the app’s screens, data models, settings, and visit behavior. |
+| Flutter | Draws the interface, pixel animals, text bubbles, and animations from Dart code. |
+| Java | Connects the app to Android calendars, notifications, app-usage monitoring, recording, audio, and launcher widgets. |
+| XML | Declares Android permissions, themes, and home-screen widget layouts. |
+| Gradle / Kotlin build scripts | Configure Android dependencies, compilation, packaging, and signing. The native app logic is Java. |
+| Bash / Python | Run previews, build APKs, prepare sound assets, and check release artifacts. |
 
-Install Flutter stable, then run these commands from the repository root:
+The active app is in `companion_flutter/`. The top-level `app/` also contains the original Java interface, kept for reference, and resources shared with the Flutter app. Use `scripts/build_flutter_apk.sh` for the current app; `scripts/build_apk.py` builds the older Java interface.
 
-```sh
-./scripts/flutterw pub get
-./scripts/preview_flutter.sh
-```
+The browser preview runs the same Flutter interface. A small JavaScript bootstrap file starts it; the screens themselves are written in Dart.
 
-Open **http://127.0.0.1:8942**. This runs the actual Dart interface in a browser. Use `r` in the running Flutter terminal to hot reload and `R` to hot restart. Browser tasks and companion settings persist in this browser. Existing example tasks can be cleared from Tasks.
+### Where to find the code
 
-Companion visits stay inside RemindMe on Android and in the browser. Android handles real phone-usage monitoring and background notification scheduling. Phone-calendar connection is Android-only; browser visits and timing can be previewed locally. Browser audio import and recording depend on the browser’s supported formats and microphone permissions. Large clips may exceed browser local-storage limits; Android stores clips as files instead.
+Paths below are relative to the repository root.
 
-## Build the Flutter Android APK
+| File or folder | Start here to understand… |
+| --- | --- |
+| `companion_flutter/lib/main.dart` | `RemindMeApp`, bottom navigation, `tasksPage()`, `companionsPage()`, `timersPage()`, and task/timer editors. |
+| `companion_flutter/lib/companion_model.dart` | `Pet`, `Task`, `TimerRule`, `VoiceClip`, and the `CompanionModel` operations that load and save data. |
+| `companion_flutter/lib/companion_editor.dart` | The Look, Bubble, Movement, and Voice sections, draft previews, and the recording dialog. |
+| `companion_flutter/lib/animal_catalog.dart` | Stable animal IDs, labels, descriptions, and suggested colors. |
+| `companion_flutter/lib/pixel_cat.dart` | `PixelCat` and `AnimalPainter.paint()`, which draw all eleven animals. |
+| `companion_flutter/lib/animal_voices.dart` | The voice styles and `AnimalVoicePicker.pick()`, which chooses random sound variations. |
+| `companion_flutter/lib/visit_overlay.dart` | `VisitController`, `VisitHost`, and `VisitOverlay`: queuing, movement, reading time, and foreground visibility. |
+| `companion_flutter/lib/voice_backend.dart` | Selects the Android or browser audio implementation. |
+| `companion_flutter/lib/voice_backend_native.dart` | Dart calls into Android audio and recording. |
+| `companion_flutter/lib/voice_backend_web.dart` | Browser file selection, recording, audio, and speech. |
+| `companion_flutter/lib/app_style.dart` | Shared colors, panels, sliders, and other reusable UI helpers. |
+| `companion_flutter/lib/task_widget_preview.dart` | An interactive Flutter preview of the Android home-screen widget. |
+| `companion_flutter/android/app/src/main/java/com/remindme/companion/` | `MainActivity.java` bridges Dart and Android; `VoiceCapture.java`, `InAppSpeech.java`, and `FlutterVoiceAssets.java` handle foreground audio. |
+| `native-core/src/main/java/com/remindme/companion/` | Shared Android task storage, calendar integration, reminder scheduling, app timers, recording-file checks, and home-screen widget behavior. |
+| `app/src/main/res/` | Shared widget layouts, widget metadata, icons, and themes. |
+| `companion_flutter/pubspec.yaml` | Flutter dependencies, fonts, sound assets, and app version. |
+| `scripts/` | Preview, build, sound-generation, and artifact-checking tools. |
+| `companion_flutter/test/`, `companion_flutter/tool/`, and `tests/` | Flutter tests, off-screen visual renders, Java checks, and Python build/privacy checks. |
 
-```sh
-./scripts/build_flutter_apk.sh
-```
+A **Flutter widget** is a UI building block, such as a button or screen. The **Android home-screen widget** is a separate Android feature built with `RemoteViews`; the Flutter preview helps you inspect its design inside the app.
 
-The ARM64 result is `dist/RemindMe-Flutter-arm64.apk`, suitable for the POCO X7 Pro. The first build needs Android SDK platforms 35 and 36, Build Tools 36.0.0, NDK 28.2.13676358, and CMake 3.22.1. Android Studio’s SDK Manager can install them; follow [Flutter’s Android setup](https://docs.flutter.dev/platform-integration/android/setup) for SDK configuration and licenses.
-
-Test builds use the existing local development key when available. Keep `.tools/debug.keystore` to install future versions as updates. Keys, SDKs, caches, recordings, and large Flutter APKs are not committed. Test APKs are shared through GitHub prerelease assets.
-
-After installation, open **Companions → Permissions** and grant task notifications and, for more precise scheduling, **Precise reminder timing** access. Floating-window permission is no longer requested. Enable companion visits. Open an individual companion’s settings to customize it, record/import audio, and try a task or timer visit. For real app timers, also grant usage access under **App timers**. Use the **Home-screen widget** button on Tasks to request widget placement or add **RemindMe tasks** from the launcher’s Widgets picker. Long-press the placed widget and drag the side handles to change width, or the bottom handle to change height. It defaults to three columns rather than four, with a 110dp minimum resize width; the launcher chooses its grid sizes. If an existing widget keeps the old width limit, remove only the widget from the home screen and add it again. Tasks stay in the app. Delete tasks inside the app; widget rows keep only the completion control.
-
-## Connect a phone calendar and set repeated reminders (0.4.0)
-
-1. On Tasks, tap **Connect phone calendar** and grant calendar access. The app lists writable calendars already exposed by your phone. For Outlook, enable the account's **Sync calendars** option first; Microsoft describes this in its [calendar sync guide](https://support.microsoft.com/en-us/outlook/how-do-i-sync-my-outlook-calendar-to-the-default-calendar-app-s). If your account or administrator does not expose a writable calendar, it will not be listed.
-2. Add or edit a task, set its **deadline**, and choose **Daily reminders start**, such as 3 days before. Daily reminders use the deadline's local time of day. In **Extra reminders (hours before)**, enter values such as `3, 1, 0.5`; the app also reminds at the deadline. Newly saved plans skip slots already in the past. Completing a task stops its future reminders; reopening it schedules the remaining future slots. If delivery is delayed, the app sends one catch-up reminder rather than a burst of every missed slot.
-3. Select a calendar under **Put task in calendar**, then save. This creates one 15-minute event at the deadline; saving edits updates the linked event. Completing the task adds a checkmark to its event title; deleting the task or removing its calendar link removes the event this app linked. A failed calendar update is shown in the task; the local task is retained. If permission is revoked, reconnect before removing a linked event.
-4. Calendar linking is one way: edits in Calendar/Outlook are not imported. Calendar entries are events, not Microsoft To Do tasks. Choose an existing calendar named Tasks if you want a separate task calendar. The event has no RemindMe-created calendar alarms; RemindMe delivers the daily/final notifications. Your calendar provider may apply its own defaults.
-5. Companions show only while RemindMe is resumed. Background task and app-timer reminders use notifications. Return to RemindMe for visits; no floating-window access is needed. The optional foreground service monitors app timers and posts notifications, without drawing pets or playing reminder speech in other apps.
-
-In **Companions → Permissions**, enable notifications and **Precise reminder timing** for scheduled delivery. Without exact-alarm access, reminders use Android's inexact alarm fallback and may be delayed. Device battery policies and force-stopping can still affect delivery; reopening the app reschedules saved reminders. Android documents the [exact-alarm permission and fallback](https://developer.android.com/develop/background-work/services/alarms).
-
-## Learn the code: languages and structure
-
-**Dart** is the language of the main app. **Flutter** is the framework that draws its screens and animations. **Java** connects the Flutter app to Android features such as phone calendars, scheduled notifications, usage events, widgets, recording, and audio. **XML** declares Android permissions, widget layouts, and themes. The `.gradle.kts` files use **Kotlin syntax to configure the build**; the native app logic is currently Java. **Bash/Python** scripts automate development and packaging. A small JavaScript file starts the Flutter browser preview; the app UI is not hand-written HTML/JavaScript.
-
-```text
-companion_flutter/
-  lib/
-    main.dart                  App entry point, bottom tabs, tasks and app timers
-    companion_model.dart       Pet, Task, TimerRule and VoiceClip data; persistence
-    companion_editor.dart      Individual companion settings and recording dialog
-    pixel_cat.dart             Eleven animated animal designs on a shared 36 × 40 Canvas grid
-    animal_catalog.dart        Stable animal IDs, descriptions and suggested palettes
-    app_style.dart             Shared colors and reusable visual components
-    visit_overlay.dart         In-app visit queue, lifecycle, and bubble fades on all devices
-    voice_backend.dart         Chooses the Android or browser audio implementation
-    voice_backend_native.dart  Dart calls into Android recording/import/playback
-    voice_backend_web.dart     Browser recorder, file picker, audio and speech
-    task_widget_preview.dart   Interactive preview of the home-screen widget
-  android/app/src/main/java/com/remindme/companion/
-    MainActivity.java          MethodChannel/EventChannel bridge between Dart and Java
-    VoiceCapture.java          Android microphone, file picker and audio audition
-    InAppSpeech.java           Recorded clips and optional TTS for foreground visits
-  pubspec.yaml                 Dependencies, fonts, assets and app version
-  test/companion_test.dart     Behavior and UI tests
-  tool/render_preview_test.dart  Off-screen rendering for visual review
-native-core/src/main/java/com/remindme/companion/
-  Store.java                  Shared task persistence and mutations
-  PetProfile.java             Android companion settings and timer-rule decoding
-  CompanionService.java       App-usage monitoring and background notifications
-  CalendarSync.java           Writable phone calendars and linked event operations
-  ReminderPlan.java           Pure daily/final reminder timing logic
-  VisitMotion.java            Earlier native motion model, kept for reference
-  CatView.java                Earlier native animal renderer, kept for reference
-  UsageSession.java           Counts uninterrupted time in chosen apps
-  ReminderReceiver.java       Schedules/delivers task reminder notifications
-  TaskWidgetProvider.java     Home-screen widget layout, refresh and button actions
-  TaskWidgetService.java      Collection adapter for older Android/large task lists
-  WidgetAddActivity.java      Small native widget quick-add dialog
-  VoiceFiles.java             Private audio file validation and safe cleanup
-app/src/main/res/              Shared Android widget XML, icon and themes
-scripts/                      Preview/build command wrappers
-```
-
-The top-level `app/` also contains the **original Java interface**, kept for reference. It is not the active Flutter interface. `scripts/build_apk.py` builds that older interface; use `scripts/build_flutter_apk.sh` for the current app. Shared native code/resources serve both builds.
-
-### A reading order
-
-1. In `main.dart`, read `main()`, `RemindMeApp`, and the `NavigationBar`. Follow `tasksPage()`, `companionsPage()`, and `timersPage()` to see which widgets draw each page.
-2. Read `Task`, `Pet`, and `TimerRule` in `companion_model.dart`. Each object has fields and `toJson()`/`fromJson()` methods that convert between Dart objects and saved data. `companionId` is a reference to a pet’s stable ID; renaming the pet does not require rewriting every task.
-3. Follow `CompanionModel.upsert()` into `_persistTask()`. On Android it sends `upsertTask` through a `MethodChannel`. In the browser it saves locally.
-4. Find the `upsertTask` case in `MainActivity.java`, then `Store.upsert()` and `Store.save()`. Java changes one stored task and refreshes the widget. An `EventChannel` sends task changes back to Flutter, keeping the screens synchronized.
-5. Read `VisitController`, `VisitHost`, and `VisitOverlay` in `visit_overlay.dart`. The pet and bubble occupy separate positions, so fading the bubble does not move the pet. `setForeground()` hides visits without overriding a recording suspension. The Java service no longer creates overlay windows. Then read `Task.reminderTimes()` and Java `ReminderPlan.times()` to compare the browser and Android reminder calculations.
-6. Read `companion_editor.dart` for customization. The editor uses a draft copy, so sliders change the preview before you save. `voice_backend.dart` uses a conditional export to select native or web audio code.
+### How the parts work together
 
 ```mermaid
 flowchart LR
@@ -115,81 +60,313 @@ flowchart LR
   Bridge --> Store["Store: local saved tasks"]
   Store --> Widget["Android home-screen widget"]
   Store -->|EventChannel| Model
-  Bridge --> Service["CompanionService"]
-  Service --> Notifications["Background notifications"]
   Bridge --> Calendar["CalendarSync: selected phone calendar"]
-  Store --> Plan["ReminderPlan: daily and final alarms"]
+  Store --> Plan["ReminderPlan and ReminderReceiver"]
+  Plan --> Notifications["Android notifications"]
+  Bridge --> Service["CompanionService: app timers"]
+  Service --> Notifications
   Model --> Visits["Flutter visits inside RemindMe"]
 ```
 
-A **widget** in Flutter is a building block such as a button, row, or screen. The **Android home-screen widget** is a different feature built with Android `RemoteViews`; `task_widget_preview.dart` is its interactive visual counterpart. A **model** is the app’s data and operations. A **service** is Android code that can continue working while the main screen is not open. A **platform channel** is a direct message bridge within the app, not a network request.
+A `MethodChannel` carries a request from Dart to Java inside the app. An `EventChannel` sends changes back to Flutter. Neither is a network connection.
 
-For a small first exercise, change `green` in `app_style.dart`, hot reload, and inspect the app’s buttons. Then read `PixelCat` and `AnimalPainter` to see how rectangles become a pixel animal. Changing defaults in code does not overwrite a companion’s already-saved settings; use the companion editor to change existing companions.
+For example, saving a task follows this path:
 
-## Checks
+1. The task editor creates a `Task`, including its chosen `companionId`.
+2. `CompanionModel.upsert()` calls `_persistTask()`. On Android, this sends an `upsertTask` message to `MainActivity.java`.
+3. Java updates the task through `Store`, manages its calendar/reminder work, and refreshes the home-screen widget. Task-change events keep Flutter synchronized.
+
+In the browser, the model saves locally through `SharedPreferences`; phone-calendar access and real phone-usage monitoring require Android.
+
+### Saved data and upgrade behavior
+
+`toJson()` and `fromJson()` convert the Dart models to and from saved data. Each companion has a stable ID. Tasks and timers store that ID, so renaming a companion does not break their assignments.
+
+The companion editor works on a draft copy. Previewing or moving a slider changes that draft; **Save companion** writes it. Missing fields in older saved profiles receive compatible defaults. Existing profiles without `voicePreset` keep the `custom` source, preserving their previous recording/system-voice behavior.
+
+Android stores imported recordings as private files. The browser keeps imported audio with its local workspace and can hit browser storage limits for large clips. `VoiceFiles.java` validates Android recording files and prevents deletion of a clip still referenced by a saved companion.
+
+Calendar-linked tasks store calendar/event IDs alongside reminder fields such as `dailyDays`, `reminderOffsets`, `lastReminderAt`, `reminderFrom`, and `snoozeUntil`. The `due` value remains the deadline. Keeping snooze separate lets the app delay a reminder without moving the linked calendar event.
+
+### Companion artwork, animation, and sound
+
+All eleven animal designs use the same **36 × 40 pixel grid**. `AnimalPainter.paint()` builds them from sharp-edged shapes, stepped outlines, highlights, and shadows. Body and accent colors remain editable because the artwork is drawn in code.
+
+Walking uses four poses over a 640 ms cycle. Idle movement uses a slower 3.84-second breathing/blinking cycle. Individual designs add characteristic movement: bunnies and frogs hop, penguins waddle, turtles keep their shells level, and the monkey moves its arms and curled tail. The renderer respects reduced-motion settings.
+
+The visit controller queues reminders. A visit enters, pauses with its text and optional audio, waits for both the reading time and audio completion, then exits. The bubble fades without changing the pet’s vertical position. Foreground/lifecycle handling hides visits and stops their speech when the app is left.
+
+`animal_voices.dart` defines three sound styles per animal, with three variations each: **99 bundled MP3s**. `AnimalVoicePicker.pick()` excludes the last clip played for that companion, animal, and style, including between task and timer visits. The selection history resets when the app restarts.
+
+For Android, Dart sends the chosen clip as a playback override. `FlutterVoiceAssets.java` accepts only the known bundled asset names, and `InAppSpeech.java` plays the sound before optional system speech. The original custom recording paths stay saved when a preset is selected. Browser playback loads the same files through Flutter’s asset bundle.
+
+The home-screen widget is implemented separately: `TaskWidgetProvider` fills `task_widget.xml` and `task_widget_row.xml`; completion calls `Store.complete()`. `task_widget_info.xml` controls its initial size and resize limits. The launcher decides the actual grid sizes.
+
+### Run the browser preview
+
+Install Flutter stable and make it available on `PATH`. The wrapper also supports a project-local Flutter installation in `.tools/flutter`.
+
+From the repository root:
+
+```sh
+./scripts/flutterw pub get
+./scripts/preview_flutter.sh
+```
+
+Open [the local preview](http://127.0.0.1:8942). In the running Flutter terminal, use `r` to hot reload or `R` to hot restart. Browser tasks and companion settings persist in that browser; example tasks can be cleared from Tasks.
+
+The preview supports companion designs, visits, settings, and browser-supported audio. Browser recording needs microphone permission and a supported recording format. Real app timers, phone calendars, background Android notifications, and launcher widgets need a phone.
+
+### Build the current Android app
+
+The existing build setup uses Android SDK platforms 35 and 36, Build Tools 36.0.0, NDK 28.2.13676358, CMake 3.22.1, and Java 17. Use Android Studio’s SDK Manager and [Flutter’s Android setup guide](https://docs.flutter.dev/platform-integration/android/setup) to configure the SDK and accept its licenses.
+
+Run:
+
+```sh
+./scripts/build_flutter_apk.sh
+```
+
+The ARM64 APK is written to `dist/RemindMe-Flutter-arm64.apk`, with a matching `.sha256` checksum. This build is suitable for the POCO X7 Pro and other compatible ARM64 phones.
+
+The build script:
+
+1. Resolves Flutter dependencies.
+2. Builds the release APK with obfuscation, separate debug symbols, and native snapshot stripping.
+3. Runs `scripts/audit_apk.py` before copying the APK into `dist`.
+4. Refreshes the APK checksum.
+
+`scripts/portable_flutter_build.py` temporarily gives Flutter’s generated plugin-registration directory a package alias. This keeps a developer’s absolute build-folder path out of the compiled APK. It restores the generated package configuration afterward and does not modify the Flutter SDK.
+
+Debug symbols remain in an ignored, timestamped `.tools/build-symbols` directory. Keep the symbols matching each shared APK privately so crash traces can be decoded. See [Flutter’s obfuscation and symbol guidance](https://docs.flutter.dev/deployment/obfuscate).
+
+Test builds use the existing local development signing key when available. Preserve `.tools/debug.keystore` to keep installing updates over previous test builds. Production signing needs a separate private key and local configuration. The `android` password in development tooling is the standard Android debug-key default; the signing key itself is not committed.
+
+### Local configuration and artifact privacy
+
+Scripts derive the project location from their own files. SDK/tool locations come from `PATH`, `ANDROID_HOME`, `ANDROID_SDK_ROOT`, generated `local.properties`, or optional project-local caches. Developer-specific absolute paths do not belong in tracked configuration.
+
+`.gitignore` excludes local environment files, private-key formats, signing configuration, database exports, debug symbols, caches, and `.tools`. Keep credentials, personal recordings, exported task data, and signing keys out of Git. An optional `.env.example` should contain placeholders only.
+
+The APK audit rejects home-folder paths, private-key markers, access-token patterns, credential-bearing URLs, and private configuration filenames inside the archive. This is a focused check, not a guarantee that an artifact contains no sensitive information. Historical Flutter test APK downloads were withdrawn during the privacy cleanup because they contained a generated local build path; their release tags still provide source code.
+
+### Checks and what still needs a phone
+
+Run the Flutter and build/privacy checks from the repository root:
 
 ```sh
 ./scripts/flutterw analyze
 ./scripts/flutterw test
+python3 tests/ArtifactPrivacyTest.py
+```
+
+Run the shared Java logic checks:
+
+```sh
 mkdir -p build/tests
-javac -d build/tests native-core/src/main/java/com/remindme/companion/UsageSession.java tests/UsageSessionTest.java native-core/src/main/java/com/remindme/companion/VisitMotion.java tests/VisitMotionTest.java native-core/src/main/java/com/remindme/companion/ReminderPlan.java tests/ReminderPlanTest.java
+javac -d build/tests \
+  native-core/src/main/java/com/remindme/companion/UsageSession.java tests/UsageSessionTest.java \
+  native-core/src/main/java/com/remindme/companion/VisitMotion.java tests/VisitMotionTest.java \
+  native-core/src/main/java/com/remindme/companion/ReminderPlan.java tests/ReminderPlanTest.java
 java -cp build/tests UsageSessionTest
 java -cp build/tests VisitMotionTest
 java -cp build/tests ReminderPlanTest
 ```
 
-The Flutter tests cover migration, persistence, task/timer assignments, companion deletion, native mutation messages, task/widget actions, recording-dialog wiring with a mocked recorder, bottom navigation, responsive layouts, calendar-permission message handling, saving calendar/reminder selections, background visibility, fixed pet height, and visit timing. They do not record a real microphone. The Java tests check usage timing and daily/final scheduling, including daylight-saving changes; the earlier native motion model also remains testable.
+Generate screen and animal-pose images in `.tools/`:
 
-For rendered screen images in `.tools/`, run `./scripts/flutterw test tool/render_preview_test.dart`. They are off-screen Flutter renders, not phone screenshots.
+```sh
+./scripts/flutterw test tool/render_animals_test.dart tool/render_preview_test.dart
+```
 
-A real phone check is still required for calendar-provider inserts/updates/deletes, Outlook account sync, microphone hardware, audio playback, actual scheduled notification delivery, usage access, and launcher widgets. Test a calendar-linked task, edit its deadline without creating duplicates, complete it, reopen it, and delete it. Verify permission denial/revocation, exact-alarm access, voice playback, and that pets/speech disappear when you switch apps. Flutter calendar UI tests use fixture calendar rows and native bridge mocks; they do not connect to a real calendar account.
+Flutter tests cover saved-data compatibility, companion/task/timer assignments, recording-dialog wiring, voice assets and random selection, calendar UI, responsive layouts, visit timing, and background visibility. Java tests cover usage timing and reminder scheduling, including daylight-saving changes. Python checks cover APK privacy detection and restoration of temporary build configuration. Off-screen renders are useful for layout review; they are not phone screenshots.
 
-## Compact widget layout (0.3.1)
+A real phone is still needed to verify:
 
-The actual Android widget is drawn by `app/src/main/res/layout/task_widget.xml` (header and list) and `task_widget_row.xml` (completion circle, title, group). `res/xml/task_widget_info.xml` controls default size and minimum resize dimensions. `TaskWidgetProvider.row()` fills in the task title and existing `list` value, while its completion action still calls `Store.complete()`. This changes presentation and sizing, not the saved task format. The Dart file `task_widget_preview.dart` mirrors the design for the in-app/browser preview. Android resizing is performed by the launcher, not by Flutter.
+- Installation/upgrades, animation pacing, touch controls, and larger text settings.
+- Microphone recording, imported audio, built-in sounds, optional speech, and interruption when switching apps.
+- Actual notification timing, notification/exact-alarm permission changes, and battery-management behavior.
+- Calendar insert/update/delete operations, Outlook calendar availability, and permission denial/revocation.
+- Real app-usage monitoring and launcher widget placement, resizing, and completion controls.
 
-## Learning notes for 0.4.0
+### Sound sources and rebuilding the voice bank
 
-A task now stores `dailyDays`, `reminderOffsets` (minutes), `reminderFrom`, `lastReminderAt`, and `snoozeUntil`. `due` remains its deadline. Keeping snooze separate prevents accidentally moving the calendar event. Old tasks with none of these fields keep their single deadline reminder. `CalendarSync` stores only the linked calendar/event IDs with each task; settings and recording files are untouched.
+The three styles are pitch/timing edits of source sounds. Cats, dogs, penguins, and monkeys use three source calls per style. Other styles use rhythmic variations of a source call. Rabbit clips use nibbling/rustling; turtle clips are original synthesized chirps. SFXMint clips are stylized AI-generated effects, and the monkey clips are performed imitations.
 
-`MainActivity` bridges Dart calls to calendar permission and provider operations. `ReminderReceiver` selects the next slot using `ReminderPlan`, claims delivered reminders in `Store`, and schedules the following alarm. App-only visuals and audio are separate: `VisitOverlay` keeps a fixed pet Y coordinate while the bubble fades; `InAppSpeech` stops when Android pauses the activity. `CompanionService` monitors app timers and sends notification/visit signals, without creating a native floating window.
+| Source | Credit / license |
+| --- | --- |
+| [Cat SFX](https://opengameart.org/content/cat-sfx) | SFX by Dan Knoflicek — CC BY 3.0 |
+| [Penguin SFX](https://opengameart.org/content/penguin-sfx) | Wolfgang Wozniak — CC BY 3.0 |
+| [Dog sounds](https://opengameart.org/content/dog-sounds) | pauliuw — CC0 |
+| [Rabbit Eating](https://opengameart.org/content/rabbit-eating) | Voltiment555 — CC0 |
+| [Monkey Sounds](https://opengameart.org/content/monkey-sounds) | AntumDeluge — CC0 |
+| SFXMint animal sounds | [CC0 license](https://sfxmint.com/license); individual source URLs are in the manifest. |
+| Turtle chirps | Original project synthesis — CC0 |
 
-## Companion design and settings update
+The app’s **Sound sources & credits** dialog displays the credits. `companion_flutter/assets/audio/animal_voices/CREDITS.txt` and `manifest.json` contain attribution, source/license URLs, transformations, and input/output SHA-256 hashes.
 
-Companion cards have a labeled **Customize** button, a voice summary, and a **Test visit** action. **Add companion** is above the collection. The editor separates settings into **Look**, **Bubble**, **Movement**, and **Voice**. Its preview lets you switch between idle, walk, and talk without saving, and the top-right play button runs a complete visit with the draft settings. Save stays at the bottom of the screen.
+The generated MP3s are committed, so an ordinary app build does not need ffmpeg or the original sound cache. To regenerate them, install ffmpeg and place the source files listed in the manifest under `.tools/animal-audio-sources`:
 
-`animal_catalog.dart` lists eleven animal designs. `AnimalPainter.paint()` in `pixel_cat.dart` uses the same 36 × 40 grid for every animal, with stepped outlines, limited shading, and characteristic ears, markings, tails, wings, or shells. Four walking poses repeat every 640 ms; idle animation has a slower 3.84-second breathing/blinking loop. Bunnies and frogs hop, penguins waddle, and turtles keep their shells level. Reduced-motion settings stop the animation. The renderer remains code-based, so body and accent colors stay customizable without loading image files.
+- Save Cat 1–3 WAVs as `cat1.wav`–`cat3.wav` and RabbitEating.wav as `rabbit.wav`.
+- Extract `dog.7z` into `dog/` and `Penguin_sfx.zip` into `penguin/`.
+- Save the five SFXMint MP3s using their animal IDs as filenames. Respect the source download limits.
+- Extract the CC0 `monkey-sounds_0.zip` archive, including its `LICENSE.txt`, into `monkey-cc0/`.
 
-Art guidance: [Pixel Art Sprites skill](https://github.com/Dizzd/aseprite-extension-mcp/tree/main/skills/pixel-art-sprites), especially its silhouette, palette, walk-cycle, and consistent-resolution patterns. The animal artwork is drawn in this project, rather than copied from a sprite pack.
+```sh
+python3 scripts/build_animal_voices.py
+# Or rebuild only the monkey clips and retain the other animals:
+python3 scripts/build_animal_voices.py --animal monkey
+```
 
-These are Dart/Flutter presentation changes. `Pet.toJson()` / `Pet.fromJson()`, storage keys, native Java audio handling, and recording paths are unchanged. Existing companions retain their IDs, colors, assignments, and recordings. Defaults are offered explicitly rather than applied to saved companions.
+The generator makes no network requests. Pixel-art guidance came from the [Pixel Art Sprites skill](https://github.com/Dizzd/aseprite-extension-mcp/tree/main/skills/pixel-art-sprites); the animal designs are drawn in this project.
 
-Run `./scripts/flutterw test tool/render_animals_test.dart tool/render_preview_test.dart` to generate the animal walk-pose study and screen previews in `.tools/`. These are off-screen renders. Check the final animation pacing, touch controls, text scaling, recording, and audio on a real Android phone before release.
+### A beginner-friendly reading order
 
-## Offline animal voices (0.5.0)
+1. Start with `RemindMeApp` and the three page functions in `main.dart` to see how screens are assembled.
+2. Read `Pet`, `Task`, and `TimerRule` in `companion_model.dart`, then their `toJson()` / `fromJson()` methods.
+3. Follow `CompanionModel.upsert()` → `_persistTask()` → the Android `MainActivity` handler → `Store.upsert()` / `Store.save()`.
+4. Read `companion_editor.dart` to see how a draft changes before saving.
+5. Read `AnimalPainter.paint()` for pixel drawing and `AnimalVoicePicker.pick()` for non-repeating sound choices.
+6. Read the visit controller and overlay, then compare Dart’s `Task.reminderTimes()` with Java’s `ReminderPlan.times()`.
 
-Open **Companions → Customize → Voice** to choose **Soft**, **Bright**, or **Low** animal sounds. Each style contains three bundled MP3 variations. The play button auditions a randomly selected variation; tap it again to stop. Selecting a source enables that companion’s voice. **My recordings** retains separate task/timer clips, and **System voice only** reads reminders without an animal sound. Existing companions default to **My recordings**, preserving their previous playback behavior. Newly created companions start with the Soft style selected but their voice remains off until enabled or a source is chosen.
+For a small first exercise, change `green` in `app_style.dart` and hot reload. Changing a default in code does not overwrite a companion’s already-saved settings.
 
-`animal_voices.dart` owns the catalog and random selection. `AnimalVoicePicker.pick()` excludes the last clip for that companion/animal/style, including across task and timer visits. Selection history is temporary and resets when the app restarts. `Pet.voicePreset` is the only added saved field; missing/unknown values fall back to `custom`. Selecting a preset leaves `taskClip`, `timerClip`, names, task assignments and recording files untouched. Returning to **My recordings** restores the saved clips. Custom recordings remain one clip per reminder type; random selection applies to the built-in sets.
+## Part 2 — App features and how to use them on your phone
 
-`voice_backend_native.dart` passes a chosen clip as a playback override to Java; it does not rewrite the stored profile. `FlutterVoiceAssets.java` permits only the 99 known asset names and loads them from the APK. `InAppSpeech.java` plays the sound before optional system speech; `VoiceCapture.java` uses the same loader for sample buttons. The existing recording ownership/deletion rules in `VoiceFiles.java` are unchanged. Browser playback in `voice_backend_web.dart` loads the same packaged files through Flutter’s asset bundle. No runtime downloads, API keys, account, or internet permission are required.
+### Install and open RemindMe
 
-The three voices are sound-designed pitch/timing styles, not recordings of three separate individual animals. Cats, dogs, penguins and monkeys use three source calls per style. Monkey sounds are performed imitations by AntumDeluge (CC0), with pitch/timing edits for the three styles. Other animal styles use edited rhythmic variations of their source call; rabbits use three extracts of nibbling/rustling, and turtles use original synthesized cartoon chirps. The app labels these distinctions. SFXMint sources are stylized AI-generated effects. Modified Cat SFX (SFX by Dan Knoflicek) and Penguin SFX (Wolfgang Wozniak) are CC BY 3.0; the other downloaded sounds are CC0. **Sound sources & credits** in the Voice section shows attribution and source/license URLs. The packaged `assets/audio/animal_voices/CREDITS.txt` and `manifest.json` contain the complete credits, input/output SHA-256 hashes and transformations.
+Install a current `RemindMe-Flutter-arm64.apk` supplied by the maintainer or built using [the Android build instructions](#build-the-current-android-app). If Android asks, allow installation from the app opening the APK. Older release tags may have source code without an APK because historical test downloads were withdrawn during the privacy cleanup.
 
-`python3 scripts/build_animal_voices.py` rebuilds the 99 assets using ffmpeg and the original files cached in `.tools/animal-audio-sources`. It makes no network requests. The manifest lists source download URLs; unpack `dog.7z` into `dog/` and `Penguin_sfx.zip` into `penguin/`, save Cat 1–3 WAVs as `cat1.wav`–`cat3.wav`, RabbitEating.wav as `rabbit.wav`, and the five SFXMint MP3s as their animal IDs. Respect the source download limits when refreshing the cache. The generated MP3s ship with the repository, so ordinary app builds do not require ffmpeg or this source cache.
+Install updates over the existing app using the same signing key to retain your tasks, companions, settings, and recordings. Uninstalling the app or clearing its storage removes locally stored data.
 
-Checks include asset completeness, random variation, legacy profile migration, preset persistence, custom-clip preservation, channel overrides, audio-start cancellation, and phone-width selection/saving. All 99 MP3s have been decoded with ffmpeg and checked against their manifest hashes. A real phone test is still needed for perceived sound quality/volume, built-in and custom playback, optional speech, microphone recording, and interruption when switching apps. The browser build verifies compilation, not real browser audio/autoplay behavior.
+The bottom navigation has three pages:
 
-## Monkey companion (0.5.1)
+| Page | What you use it for |
+| --- | --- |
+| **Tasks** | Create tasks, set reminders, connect calendars, and add the home-screen widget. |
+| **Companions** | Create animals, customize their appearance/voice, and enable in-app visits. |
+| **App timers** | Choose apps to watch and set time limits for reminder nudges. |
 
-The animal picker includes **Monkey**, with brown fur, a cream face mask, round ears, long arms and a curled tail. `AnimalPainter.paint()` in `pixel_cat.dart` draws and animates it on the same 36 × 40 grid as the other companions. `animal_catalog.dart` supplies its label and suggested colors, while `voicesFor()` in `animal_voices.dart` supplies Soft, Bright and Low chatters. Each style has three random variations, and custom recordings still work.
+### First-time setup and permissions
 
-Monkey Sounds by AntumDeluge: https://opengameart.org/content/monkey-sounds — CC0 1.0. Use the linked `monkey-sounds_0.zip` archive (includes `LICENSE.txt` for CC0), extracting its WAVs to `.tools/animal-audio-sources/monkey-cc0/`. Run `python3 scripts/build_animal_voices.py --animal monkey` to rebuild just the nine monkey clips while retaining other animals’ clips and credits. The Android asset loader permits the new monkey filenames. Saved companion IDs, settings, task assignments and recordings retain the same format.
+1. Open **Companions** and turn on **Enable companion visits**.
+2. Under **Permissions**, allow **Task notifications**.
+3. Allow **Precise reminder timing** if you want more precise scheduled delivery.
+4. Tap a companion’s **Test visit** button to see an example inside RemindMe.
 
-## Local configuration and sensitive files
+Other permissions are needed only for the features you choose:
 
-Build and preview scripts locate the project from their own location. Flutter is discovered on `PATH` or in the project’s optional `.tools/flutter` directory; Android SDK configuration comes from `ANDROID_HOME`, `ANDROID_SDK_ROOT`, generated `local.properties`, or the optional project-local SDK cache. No developer-specific absolute paths belong in source control. `127.0.0.1` in the preview command is the local web-server address.
+| Permission | When it is used |
+| --- | --- |
+| Notifications | Background task and app-timer reminders. |
+| Precise reminder timing | More precise scheduled task reminders; the fallback can be delayed. |
+| App-usage access | Monitoring the phone apps selected in an app-timer rule. Grant it from **App timers**. |
+| Calendar access | Reading writable phone calendars and managing events for tasks you link. |
+| Microphone | Recording your own audio, requested when you press **Record**. |
 
-Keep personal `.env` files, signing keys, `key.properties`, `local.properties`, recordings, and exported task databases out of Git. `.gitignore` excludes local credential files, common private-key formats, database exports, build caches, and the `.tools` directory. Commit only placeholder values in an optional `.env.example`. The standard `android` debug-key password in development build tooling is the Android development default; the actual local signing keystore remains untracked. Preserve that local keystore to keep installing test builds as updates. Production signing requires a separate private key and local configuration.
+Companions and their voices appear only while you use RemindMe. They hide and stop speaking when you leave it. Background reminders use notifications; no floating-window permission is needed.
 
-Shared Flutter APKs are built with `--obfuscate`, `--split-debug-info`, and explicit native snapshot stripping (`--extra-gen-snapshot-options=--strip`), following [Flutter’s release guidance](https://docs.flutter.dev/deployment/obfuscate). Debug symbols stay in an ignored, timestamped `.tools/build-symbols` folder; keep the matching symbols privately for crash reports. For the build, `scripts/portable_flutter_build.py` temporarily assigns Flutter’s generated plugin-registration directory a package alias. Flutter then embeds a portable `package:remindme_build_plugins` URI instead of a developer’s absolute directory. The generated package configuration is restored afterward; the Flutter SDK is unchanged. Together these settings remove the generated source-path metadata observed in earlier test APKs. `scripts/build_flutter_apk.sh` runs `scripts/audit_apk.py` before copying an APK to `dist`, and refreshes its SHA-256 file. The check rejects home-folder paths, private-key markers, access-token patterns, credential-bearing URLs, and private configuration filenames inside APK entries. It is a focused check, not a guarantee that a binary contains no sensitive information.
+### Create tasks and set reminders
+
+1. Open **Tasks** and tap **Add task**.
+2. Enter a title and list, then choose the **Reminder companion**.
+3. Tap **Set deadline and reminders** if the task needs a date and time.
+4. Choose **Daily reminders start**, such as three days before the deadline, or choose no daily reminders.
+5. Add optional **Extra reminders (hours before)**, such as `3, 1, 0.5` for three hours, one hour, and thirty minutes before the deadline.
+6. Save the task.
+
+Daily reminders use the deadline’s time of day and can begin up to 30 days before it. The app also reminds at the deadline. Newly saved plans skip slots already in the past; delayed delivery produces one catch-up reminder instead of many at once.
+
+Complete a task to stop its future reminders. Reopening it schedules the remaining future reminders. **Snooze** adds a later reminder without changing the deadline or moving a linked calendar event.
+
+### Create and customize a companion
+
+Open **Companions → Add companion**, enter a name, and choose an animal:
+
+**Cat, Dog, Bunny, Fox, Bear, Panda, Frog, Penguin, Owl, Monkey, or Turtle.**
+
+Tap **Customize** on an existing companion to edit it. Its settings are organized into four sections:
+
+| Section | Available settings |
+| --- | --- |
+| **Look** | Name, animal, body/accent colors, size, and opacity. |
+| **Bubble** | Font, text size/color, bubble color, rounded corners, and reading time. |
+| **Movement** | Entrance side, stopping position, screen height, and walking speed. |
+| **Voice** | Built-in sounds, custom recordings, system speech, volume, speech speed, and pitch. |
+
+Switching animals keeps your selected colors. Tap **Use suggested colors** to apply that animal’s suggested palette. The preview’s **Idle**, **Walk**, and **Talk** choices show its animation. The top-right play button tests a complete reminder visit with your draft settings.
+
+Tap **Save companion** to keep the changes. Use **Make default** on a companion’s card to select it for new tasks. Individual tasks and timers can still choose another companion.
+
+Removing a companion moves its assigned tasks and timers to another companion; it does not delete those tasks. The app keeps at least one companion.
+
+### Choose a voice or add your own
+
+Open **Companions → Customize → Voice**.
+
+For built-in sounds:
+
+1. Choose **Soft**, **Bright**, or **Low** sounds for the selected animal.
+2. Tap the play button beside a style to hear a sample; tap it again to stop.
+3. Adjust **Voice volume**.
+4. Optionally enable **Read reminder text after the sound**.
+5. Save the companion.
+
+Each built-in style has three offline clips. Visits randomly select a variation and avoid playing the same one twice in a row while the app is running. Selecting a voice source enables that companion’s voice; newly created companions otherwise begin with voice playback off.
+
+For your own audio, select **My recordings**, then **Record** or **Import** under **Task reminders** or **App-timer nudges**. You can use a different clip for each reminder type. Each clip can be up to **60 seconds and 5 MB**. Android keeps imported originals and copies the selected audio into the app’s private storage.
+
+Custom recordings play as recorded; there is one saved custom clip per reminder type. Switching to a built-in style keeps those recordings, and choosing **My recordings** restores them. With no custom clip, an enabled voice reads the reminder using the phone’s system voice. Choose **System voice only** to use that speech without an animal sound.
+
+The built-in choices are sound-designed styles with pitch and timing variations. Rabbit sounds are nibbling/rustling, monkey sounds are performed imitations, and turtle sounds are cartoon chirps. The settings explain these differences and provide **Sound sources & credits**. This feature does not clone a voice.
+
+The text bubble always shows the actual reminder. A visit waits for both its reading time and audio to finish before leaving. Multiple visits queue instead of overlapping.
+
+### Set an app timer
+
+1. Open **App timers** and grant **App-usage access**.
+2. Tap **Add app timer**.
+3. Give the timer a name, choose a companion, and set its time limit.
+4. Choose the apps to watch, save, and enable the rule.
+5. Keep **Enable companion visits** turned on in **Companions**.
+
+Each timer has its own selected apps, limit, companion, and enable switch. Use **Test visit** to preview its companion. Phone-usage monitoring runs on Android; the browser preview uses example apps.
+
+When you are outside RemindMe, timer nudges use notifications. The monitoring service does not draw pets or play reminder speech over other apps.
+
+### Link a task to your phone calendar
+
+1. On **Tasks**, tap **Connect phone calendar** and allow calendar access.
+2. Add or edit a task with a deadline.
+3. Under **Put task in calendar**, choose a writable phone calendar and save.
+
+The app creates one 15-minute event at the deadline. Editing the deadline updates the linked event. Completing the task adds a checkmark to the event title; deleting the task or removing its calendar link removes the event RemindMe created.
+
+Only calendars already exposed by Android are listed. For Outlook, enable the account’s **Sync calendars** option first; see Microsoft’s [calendar sync guide](https://support.microsoft.com/en-us/outlook/how-do-i-sync-my-outlook-calendar-to-the-default-calendar-app-s). Account or administrator restrictions can prevent a writable calendar from appearing.
+
+Calendar linking is one way: edits made in Calendar or Outlook are not imported into RemindMe. The entries are calendar events, not Microsoft To Do tasks. RemindMe handles its repeated reminders; the calendar provider may apply its own default alerts.
+
+If a calendar update fails, the task remains saved locally and shows the error. If permission is revoked, reconnect before removing a linked event.
+
+### Add the home-screen widget
+
+On **Tasks**, tap **Home-screen widget** to request placement. You can also open your launcher’s Widgets picker and add **RemindMe tasks**.
+
+Use the widget’s top-right add button to create a task, and the circle beside a row to complete it. Rows show the task title and list/group. Delete tasks inside the app.
+
+Long-press the widget and drag its side or bottom handles to resize it. Your launcher determines the available sizes. If an older widget keeps its previous width limit, remove only the widget from the home screen and add it again; the tasks remain in RemindMe.
+
+### Privacy, storage, and troubleshooting
+
+The Android release has no account, backend, analytics, or internet permission. Tasks and companion settings are stored locally. Built-in sounds work offline. Calendar events you explicitly link may sync through the selected calendar account, and system speech follows your phone’s installed text-to-speech engine and settings.
+
+| If something does not work | What to check |
+| --- | --- |
+| No companion appears | Turn on companion visits, return to RemindMe, and try **Test visit**. Pets do not appear over other apps. |
+| Background reminders are missing or late | Check notification permission and precise reminder timing. Battery policies and force-stopping can affect delivery; reopening RemindMe reschedules saved reminders. |
+| A calendar is missing | Check calendar permission and whether the account exposes a writable calendar through Android. |
+| A voice is silent | Check the companion’s voice switch, volume, selected source, clip playback, and the phone’s text-to-speech engine if using system speech. |
+| Recording does not start | Allow microphone access, or import an audio file instead. |
+| A widget will not resize as expected | Use the launcher’s resize handles, or remove and re-add only the widget. |
+
+Without precise timing access, Android uses an inexact alarm fallback that may be delayed. See Android’s [alarm scheduling guidance](https://developer.android.com/develop/background-work/services/alarms) for the platform behavior.
