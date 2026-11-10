@@ -17,3 +17,20 @@ local.properties
 *.idsig
 **/__pycache__/
 /dist/RemindMe-Flutter-*.apk
+
+# Local credentials, signing material, and exported user data
+.env
+.env.*
+!.env.example
+**/key.properties
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+service-account*.json
+*.sqlite
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
